@@ -20,13 +20,13 @@ Printable sheet, thin thinking trail, and command-mark stubs. Stage 1–3 locks 
 
 ## Live preview
 
-Public HTTPS demo (GitHub Pages project site): **https://catch220111.github.io/Terikiki/**
+**https://catch220111.github.io/Terikiki/**
 
-Pushes to `main` run [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): `npm ci` → `npm run build` (writes samples into `public/samples`, Vite `base` `/Terikiki/`) → `actions/upload-pages-artifact` → `actions/deploy-pages`. Sample PDF and note SVGs are same-origin under that base, so pdf.js load and note `<img>` paths work without a paid host.
+Pushes to `main` run [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): `npm run build` (Vite `base` `/Terikiki/`, samples in `public/samples`) then `actions/deploy-pages`. PDF and note URLs use that base, so they stay same-origin on the project site.
 
-**First-time (after merge):** repo **Settings → Pages → Build and deployment → Source: GitHub Actions**. If the first deploy failed before that was set, re-run **Deploy GitHub Pages** from the Actions tab (`workflow_dispatch`).
+After merge: **Settings → Pages → Source: GitHub Actions**. Re-run the workflow if the first deploy ran before that was set.
 
-Local `npm run dev` / `npm run preview` also use `base: '/Terikiki/'`, so open `http://127.0.0.1:5174/Terikiki/` (dev) or `http://127.0.0.1:4173/Terikiki/` (preview).
+Local: `http://127.0.0.1:5174/Terikiki/` (`npm run dev`) or `http://127.0.0.1:4173/Terikiki/` (`npm run preview`).
 
 ## Demo
 

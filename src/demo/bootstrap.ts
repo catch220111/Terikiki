@@ -1,7 +1,5 @@
-/** Resolve a file under `public/` against Vite `base` (GitHub Pages `/Terikiki/`). */
-export function publicUrl(path: string): string {
-  const base = import.meta.env.BASE_URL;
-  return `${base}${path.replace(/^\//, '')}`;
+function publicUrl(path: string): string {
+  return `${import.meta.env.BASE_URL}${path}`;
 }
 
 export const SAMPLE_PDF_URL = publicUrl('samples/lecture-coupled-notes.pdf');
