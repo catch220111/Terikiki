@@ -78,6 +78,7 @@ function DeskApp() {
     if (!state.document || state.document.id !== SAMPLE_DOCUMENT_ID) return;
     if (state.notes.length > 0) return;
     if (state.pages.length === 0 || state.pages.some((page) => !page.excerpt)) return;
+    const seeded: NoteCard[] = [];
     for (const sample of SAMPLE_NOTES) {
       const note = makeNote({
         title: sample.title,
@@ -87,7 +88,25 @@ function DeskApp() {
         inkHints: sample.inkHints,
       });
       ingestHandwriting(note, state.pages, dispatch, matcher);
+      seeded.push(note);
     }
+    // Connected demo glance: one MANUAL pin so hanging ink shares the frame with PDF.
+    // Pending match slips stay suggestions — this is not auto-accept into the graph.
+    const hanging = seeded[0];
+    if (hanging && state.document) {
+      dispatch({
+        type: 'commit-manual-anchor',
+        cardId: hanging.id,
+        target: { kind: 'page', documentId: state.document.id, pageIndex: 1 },
+      });
+      const page = state.pages.find((p) => p.pageIndex === 1);
+      dispatch({ type: 'select-card', cardId: hanging.id, additive: false });
+      if (page) {
+        dispatch({ type: 'select-card', cardId: page.id, additive: false });
+        dispatch({ type: 'focus-card', cardId: page.id });
+      }
+    }
+    setStatus(`${SAMPLE_DOCUMENT_TITLE} · hanging ink on p2 — accept / reject / correct the rest`);
   }, [dispatch, matcher, state.document, state.notes.length, state.pages]);
 
   async function onImportPdf(file: File) {

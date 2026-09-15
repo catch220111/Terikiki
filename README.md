@@ -10,14 +10,16 @@ Vite 8 + React 19 + TypeScript + `pdfjs-dist`. Node `>=22.12.0`.
 
 ## Chrome (this cut)
 
-The shell is a **PDF-editor / notebook reader** on VL v1 tokens (`src/ui/lock.ts`): `--bg --surface --border --text --muted --accent --hand --ai --pdf --danger`. Sans chrome and wordmark; script only on command-mark glyphs. Cards stay flat 8–12px. Handwriting is largest (`--hand`); PDF pages are stiff (`--pdf`); AI cards stay quieter (`--ai`). Origins are token color + scale, not craft-desk texture and not a marketing masthead.
+The shell is a **Chromium-reader** on VL v1 tokens (`src/ui/lock.ts`): `--bg --surface --border --text --muted --accent --hand --ai --pdf --danger`. Sans chrome and wordmark; script only on command-mark glyphs. Cards stay flat 8–12px. Handwriting is largest (`--hand`); PDF pages are stiff (`--pdf`); AI cards stay quieter (`--ai`). Origins are token color + scale, not craft-desk texture and not a marketing masthead.
 
-VL v1.1 implementable cut (`src/ui/lock.ts`):
+VL v1.2 implementable cut (`src/ui/lock.ts`):
 
-- Keep v1 tokens; no craft regress.
-- Dual surface: tool chrome vs **light page paper** (`--stage`).
-- Thumbnail rail
-- **Compact** zoom/fit bar (− / % / + / Fit width / Fit page)
+- Keep v1 tokens + v1.1 PDF-editor tools; no craft regress.
+- **Document-first** centered continuous PDF reading column on a quiet gutter. `--stage` is nearer white page paper. Default camera frames the reading column — not a generic card canvas.
+- Horizontal **bottom** page filmstrip (page silhouettes, restrained `--accent` current position). Primary wayfinding.
+- Thumbnail click **glides** to that page (180–280ms ease-out, no bounce).
+- Filmstrip fades/slides in on pointer move and idles out in ~1.2–2s. **`prefers-reduced-motion`:** instant page jump, static visible strip, no animated highlight.
+- Compact zoom/fit bar (− / % / + / Fit width / Fit page)
 - **Segmented annotation strip** (Pan / Select / Pin page / Pin region, plus Detect / Print / Ask)
 - Trail as **collapsed inspector drawer**
 - Ask stays Pull/Tuck flat sheet
@@ -26,7 +28,7 @@ VL v1.1 implementable cut (`src/ui/lock.ts`):
 
 Soft residuals stay backlog. Stage 1–4 behavior locks hold.
 
-The chrome is tool-forward: quieter file controls on the document toolbar; Detect / Print / Ask sit with the annotation tools. Manual pin is the active tool on the segmented strip, not a form on every note. Pan is a capture-phase tool so cards do not steal the drag. The matrix stays the spatial center.
+The chrome is tool-forward: quieter file controls on the document toolbar; Detect / Print / Ask sit with the annotation tools. Manual pin is the active tool on the segmented strip, not a form on every note. Pan is a capture-phase tool so cards do not steal the drag. The reading column is the optical center.
 
 ## Stage 4
 
@@ -57,7 +59,9 @@ npm run dev
 
 Open `http://127.0.0.1:5174/Terikiki/`.
 
-The editor boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two unpinned handwritten notes. The toolbar shows the document title; the left thumbnail rail lists p1–p3. Match slips are **pending**. Marks wait for **Detect marks** on the annotation strip (Trail opens as a drawer). Click a page thumb to jump in the matrix (that does not gather Ask). **Pan** drags the matrix including over cards. Pin with **Pin page** / **Pin region** in the segmented strip after selecting a note — not with per-card pin buttons. **Fit width** / **Fit page** live on the zoom bar.
+The editor boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two unpinned handwritten notes. The toolbar shows the document title; the bottom filmstrip lists every page. Match slips are **pending**. Marks wait for **Detect marks** on the annotation strip (Trail opens as a drawer). Click a filmstrip silhouette to glide to that page (that does not gather Ask). **Pan** drags the stage including over cards. Pin with **Pin page** / **Pin region** in the segmented strip after selecting a note — not with per-card pin buttons. **Fit width** / **Fit page** live on the zoom bar and re-frame the reading column.
+
+Move the pointer: the filmstrip fades in, then idles out. With `prefers-reduced-motion: reduce`, the strip stays visible and page jumps are instant.
 
 ### Print desk / trail / detect → confirm
 
@@ -91,7 +95,7 @@ Pending slips stay **not pinned** until Accept / Correct / pin via the segmented
 | Thinking trail order + AI/ink lock | `src/trail/events.ts`, `src/trail/lock.ts` |
 | Stage 4 print lock (one sheet, iframe not popup, AI/ink labeled) | `src/export/lock.ts`, `src/export/printSheet.ts` |
 | pdf.js loader | `src/pdf/loadPdf.ts` |
-| VL v1 + PDF-editor shell lock (tokens, no craft desk, handwriting size, toolbar + page strip, Ask overlay) | `src/ui/lock.ts`, `src/styles/desk.css` |
+| VL v1 + Chromium-reader shell lock (tokens, reading column, bottom filmstrip, Ask overlay) | `src/ui/lock.ts`, `src/styles/desk.css` |
 | Desk UI | `src/ui/*`, `src/styles/desk.css` |
 
 Sample assets are generated by `npm run samples` (`scripts/generate-samples.mjs`) into `public/samples` (gitignored).

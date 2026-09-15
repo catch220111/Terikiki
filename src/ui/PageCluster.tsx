@@ -31,17 +31,7 @@ export function PageCluster({ state, dispatch, onArmPin }: Props) {
   const loose = looseCards(state);
   return (
     <>
-      {loose.length > 0 && (
-        <section className="cluster loose">
-          <div className="cluster-label">Unpinned</div>
-          <div className="hang-axis">
-            {loose.map((card) => (
-              <HangCard key={card.id} card={card} state={state} dispatch={dispatch} onArmPin={onArmPin} />
-            ))}
-          </div>
-        </section>
-      )}
-      <div className="page-axis">
+      <div className="reading-column" data-testid="reading-column">
         {state.pages.map((page) => {
           const hanging = cardsHangingOnPage(state, page.pageIndex).filter(
             (card): card is Note | AiCard => card.kind === 'note' || card.kind === 'ai',
@@ -59,6 +49,16 @@ export function PageCluster({ state, dispatch, onArmPin }: Props) {
           );
         })}
       </div>
+      {loose.length > 0 && (
+        <section className="cluster loose">
+          <div className="cluster-label">Unpinned</div>
+          <div className="hang-axis">
+            {loose.map((card) => (
+              <HangCard key={card.id} card={card} state={state} dispatch={dispatch} onArmPin={onArmPin} />
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }

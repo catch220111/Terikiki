@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import appSrc from '../App.tsx?raw';
+import contextSrc from '../ai/context.ts?raw';
 import printSrc from '../export/printSheet.ts?raw';
 import noteSrc from './NoteCard.tsx?raw';
 import connectorSrc from './ConnectorLayer.tsx?raw';
@@ -7,6 +9,11 @@ import stripSrc from './PageStrip.tsx?raw';
 import traySrc from './SelectionTray.tsx?raw';
 import shellSrc from './DeskShell.tsx?raw';
 import viewportSrc from './MatrixViewport.tsx?raw';
+import clusterSrc from './PageCluster.tsx?raw';
+import cameraSrc from './cameraFit.ts?raw';
+import glideSrc from './cameraGlide.ts?raw';
+import chromeSrc from './filmstripChrome.ts?raw';
+import { filmstripChromeHonorsThesis } from './filmstripChrome.ts';
 import {
   askPanelIsFlatSheet,
   askRemainsMatrixOverlay,
@@ -20,15 +27,25 @@ import {
   connectorsAreSelectHoverOnly,
   craftChromeLeaks,
   dualSurfaceRoles,
+  filmstripAutoHide,
+  filmstripIsBottomWayfinding,
+  filmstripIsOnlySaturatedNavigator,
   handwritingHasSizePrimacy,
+  handwritingIsOnlyWarmAccent,
+  jamesLingxiCoherenceMissing,
   missingVlV1Tokens,
+  pageGlideIsEaseOut,
   pageStripIsReadingChrome,
   pinChromeIsNotOnLeaves,
   pinDrivenByActiveTool,
+  readingColumnIsDefault,
+  reducedMotionReader,
   scriptUsedOutsideGlyphs,
+  stageIsNearWhitePaper,
   toolbarIsDocumentApp,
   trailIsCollapsedInspector,
   vlV11LayoutMissing,
+  vlV12ChromiumReaderMissing,
   zoomFitBarIsCompact,
   engThinReviewMissing,
   galvezJamesMissing,
@@ -95,10 +112,27 @@ describe('VL v1.1 implementable cut', () => {
     expect(pinDrivenByActiveTool(traySrc, shellSrc)).toBe(true);
     expect(engThinReviewMissing(noteSrc, traySrc, shellSrc, css)).toEqual([]);
     expect(galvezJamesMissing(traySrc, railSrc, stripSrc, viewportSrc, css)).toEqual([]);
-    expect(css).toMatch(/\.thumb-rail/);
+    expect(css).toMatch(/\.page-filmstrip/);
     expect(css).toMatch(/\.zoom-fit-bar/);
     expect(css).toMatch(/\.segmented/);
     expect(traySrc).toMatch(/annotation-strip/);
     expect(css).not.toMatch(/brand-promise/);
+  });
+
+  it('locks Galvez IA + Valentina VL v1.2 Chromium-reader', () => {
+    expect(stageIsNearWhitePaper(css)).toBe(true);
+    expect(readingColumnIsDefault(css, clusterSrc, viewportSrc, cameraSrc)).toBe(true);
+    expect(filmstripIsOnlySaturatedNavigator(css)).toBe(true);
+    expect(filmstripIsBottomWayfinding(css, stripSrc)).toBe(true);
+    expect(pageGlideIsEaseOut(glideSrc, viewportSrc)).toBe(true);
+    expect(filmstripAutoHide(css, stripSrc, chromeSrc)).toBe(true);
+    expect(filmstripChromeHonorsThesis(css, stripSrc)).toBe(true);
+    expect(reducedMotionReader(css, glideSrc, viewportSrc, chromeSrc, stripSrc)).toBe(true);
+    expect(vlV12ChromiumReaderMissing(css, stripSrc, clusterSrc, viewportSrc, cameraSrc, glideSrc, chromeSrc)).toEqual([]);
+    expect(handwritingHasSizePrimacy(css)).toBe(true);
+    expect(galvezJamesMissing(traySrc, railSrc, stripSrc, viewportSrc, css)).toEqual([]);
+    expect(jamesLingxiCoherenceMissing(css, cameraSrc, viewportSrc, appSrc, noteSrc, contextSrc)).toEqual([]);
+    expect(handwritingIsOnlyWarmAccent(css)).toBe(true);
+    expect(css).not.toMatch(/\.thumb-rail/);
   });
 });

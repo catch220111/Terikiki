@@ -6,7 +6,7 @@ import { TopRail } from './TopRail.tsx';
 import { SelectionTray } from './SelectionTray.tsx';
 import { TrailStrip } from './TrailStrip.tsx';
 import { MatrixViewport } from './MatrixViewport.tsx';
-import { ThumbnailRail, ZoomFitBar } from './PageStrip.tsx';
+import { ZoomFitBar } from './PageStrip.tsx';
 import { AskPanel } from './AskPanel.tsx';
 import { PrintPreview } from './PrintPreview.tsx';
 import { pinModeForTool, pinToolHint, type ViewerTool } from './viewerTool.ts';
@@ -124,7 +124,6 @@ export function DeskShell({
         onDetectMarks={detectMarks}
         onExport={onExport}
       />
-      <ThumbnailRail state={state} dispatch={dispatch} />
       <MatrixViewport
         state={state}
         dispatch={dispatch}

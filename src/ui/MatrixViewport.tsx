@@ -1,7 +1,20 @@
-import { useCallback, useEffect, useRef, useState, type Dispatch, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type DragEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { ConnectorLayer } from './ConnectorLayer.tsx';
 import { PageCluster } from './PageCluster.tsx';
+import { PageFilmstrip } from './PageStrip.tsx';
+import { cameraFramingPage, lerpCamera, PAGE_GLIDE_MS, prefersReducedMotion } from './cameraGlide.ts';
+import { instantPageJump } from './filmstripChrome.ts';
+import { readingColumnCamera, READING_GUTTER_PX } from './cameraFit.ts';
 import type { ViewerTool } from './viewerTool.ts';
 
 interface Props {
@@ -22,6 +35,8 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
   const surfaceRef = useRef<HTMLDivElement>(null);
   const cameraRef = useRef(state.camera);
   cameraRef.current = state.camera;
+  const framedDoc = useRef<string | null>(null);
+  const glideGen = useRef(0);
   const [surface, setSurface] = useState<HTMLDivElement | null>(null);
   const [drag, setDrag] = useState<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const [dropOver, setDropOver] = useState(false);
@@ -29,6 +44,37 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
   useEffect(() => {
     setSurface(surfaceRef.current);
   }, [state.pages.length, state.notes.length, state.aiCards.length, state.anchors.length]);
+
+  useLayoutEffect(() => {
+    // CLV: first-frame PDF + hanging ink together (connected study glance), not filmstrip-only.
+    const docId = state.document?.id ?? null;
+    if (!docId || state.pages.length === 0) return;
+    const hangingPage =
+      state.pages.find((page) =>
+        state.anchors.some((anchor) => anchor.target.pageIndex === page.pageIndex),
+      )?.pageIndex ?? 0;
+    const frameKey = `${docId}:p${hangingPage}:a${state.anchors.length}`;
+    if (framedDoc.current === frameKey) return;
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const frame = () => {
+      if (framedDoc.current === frameKey) return true;
+      const view = viewport.getBoundingClientRect();
+      if (view.width < 40) return false;
+      framedDoc.current = frameKey;
+      dispatch({
+        type: 'set-camera',
+        camera: readingColumnCamera(view.width, view.height, hangingPage),
+      });
+      return true;
+    };
+    if (frame()) return;
+    const ro = new ResizeObserver(() => {
+      if (frame()) ro.disconnect();
+    });
+    ro.observe(viewport);
+    return () => ro.disconnect();
+  }, [dispatch, state.anchors, state.document?.id, state.pages]);
 
   useEffect(() => {
     if (!state.focusCardId || state.revealNonce === 0) return;
@@ -40,13 +86,28 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
       : null;
     const el = regionEl ?? surfaceEl.querySelector(`[data-card="${state.focusCardId}"]`);
     if (!el) return;
-    const card = el.getBoundingClientRect();
     const view = viewport.getBoundingClientRect();
-    dispatch({
-      type: 'nudge-camera',
-      dx: view.left + view.width / 2 - (card.left + card.width / 2),
-      dy: view.top + view.height / 2 - (card.top + card.height / 2),
-    });
+    const card = el.getBoundingClientRect();
+    const target = cameraFramingPage(view, card, cameraRef.current, READING_GUTTER_PX);
+    const gen = ++glideGen.current;
+    if (instantPageJump(prefersReducedMotion())) {
+      dispatch({ type: 'set-camera', camera: target });
+      return;
+    }
+    const from = cameraRef.current;
+    const started = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      if (glideGen.current !== gen) return;
+      const t = Math.min(1, (now - started) / PAGE_GLIDE_MS);
+      dispatch({ type: 'set-camera', camera: lerpCamera(from, target, t) });
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (glideGen.current === gen) glideGen.current += 1;
+    };
   }, [dispatch, state.citedAnchorId, state.focusCardId, state.revealNonce]);
 
   const onWheel = useCallback(
@@ -78,6 +139,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
       if (e.target.closest('button, input, textarea, label')) return;
       e.preventDefault();
       e.stopPropagation();
+      glideGen.current += 1;
       target.setPointerCapture(e.pointerId);
       const camera = cameraRef.current;
       setDrag({ x: e.clientX, y: e.clientY, panX: camera.x, panY: camera.y });
@@ -89,6 +151,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
   function onPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
     if (panTool) return;
     if (e.button !== 0 || isInteractive(e.target)) return;
+    glideGen.current += 1;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     setDrag({ x: e.clientX, y: e.clientY, panX: state.camera.x, panY: state.camera.y });
   }
@@ -168,6 +231,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
         <ConnectorLayer state={state} surface={surface} />
         {state.pages.length === 0 && <div className="ghost">Open a PDF to populate the matrix.</div>}
       </div>
+      <PageFilmstrip state={state} dispatch={dispatch} />
     </div>
   );
 }
