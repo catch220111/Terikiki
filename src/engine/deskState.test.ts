@@ -204,15 +204,16 @@ describe('deskReducer', () => {
     lockHolds(state);
   });
 
-  it('focus-card reveals without dropping the rest of the selection', () => {
+  it('focus-card reveals without changing the Ask selection set', () => {
     let state = hydrated();
     const a = state.pages[0]!.id;
     const b = state.pages[1]!.id;
     state = deskReducer(state, { type: 'select-card', cardId: a, additive: false });
-    state = deskReducer(state, { type: 'focus-card', cardId: b });
-    expect(state.selection.cardIds).toEqual([a, b]);
+    state = deskReducer(state, { type: 'focus-card', cardId: b, anchorId: 'region_1' });
+    expect(state.selection.cardIds).toEqual([a]);
     expect(state.revealNonce).toBe(1);
     expect(state.focusCardId).toBe(b);
+    expect(state.citedAnchorId).toBe('region_1');
   });
 
   it('AI turns record the selection snapshot, not the whole desk', () => {
@@ -226,7 +227,16 @@ describe('deskReducer', () => {
         prompt: 'explain',
         selectionCardIds: [a],
         answer: 'because you selected this page',
-        citations: [{ cardId: a, quote: 'oscillator' }],
+        citations: [
+          {
+            cardId: a,
+            quote: 'oscillator',
+            kind: 'pdf-page',
+            label: 'PDF p1 · Page 1',
+            pageIndex: 0,
+            revealCardId: a,
+          },
+        ],
         at: '2026-09-15T00:00:00.000Z',
       },
     });

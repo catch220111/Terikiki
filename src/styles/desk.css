@@ -172,6 +172,9 @@ img { max-width: 100%; display: block; }
   white-space: nowrap;
 }
 .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   background: #ead9a8;
   color: #3a2a12;
   border: none;
@@ -181,7 +184,34 @@ img { max-width: 100%; display: block; }
   box-shadow: 2px 2px 0 rgba(0,0,0,0.25);
   white-space: nowrap;
 }
+.chip-pdf { border-left: 3px solid #6b5d4a; }
+.chip-note { border-left: 3px solid var(--hand-ink); }
+.chip-ai { border-left: 3px solid var(--ai-ink); }
 .chip:hover { filter: brightness(1.05); }
+.chip-jump {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  font: inherit;
+  color: inherit;
+}
+.chip-kind {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7a5a28;
+}
+.chip-drop {
+  all: unset;
+  cursor: pointer;
+  font: inherit;
+  color: #7a5a28;
+  padding: 0 0.15rem;
+  line-height: 1;
+}
+.chip-drop:hover { color: var(--vermillion); }
 .selection-tray .ink-btn { margin-left: auto; }
 
 .matrix-viewport {
@@ -331,11 +361,29 @@ img { max-width: 100%; display: block; }
 .paper-card.selected {
   box-shadow: 0 0 0 2px var(--vermillion), var(--shadow);
 }
+.paper-card.cited {
+  box-shadow: 0 0 0 1px var(--gold), var(--shadow);
+}
+.paper-card.selected.cited {
+  box-shadow: 0 0 0 2px var(--vermillion), 0 0 0 5px color-mix(in srgb, var(--gold) 70%, transparent), var(--shadow);
+}
 .paper-card.pdf.selected {
   box-shadow: 0 0 0 2px var(--vermillion), 0 6px 14px rgba(0, 0, 0, 0.2);
 }
+.paper-card.pdf.cited {
+  box-shadow: 0 0 0 1px var(--gold), 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+.paper-card.pdf.selected.cited {
+  box-shadow: 0 0 0 2px var(--vermillion), 0 0 0 5px color-mix(in srgb, var(--gold) 70%, transparent), 0 6px 14px rgba(0, 0, 0, 0.2);
+}
 .paper-card.ai.selected {
   box-shadow: 0 0 0 2px var(--vermillion), 0 4px 10px rgba(0, 0, 0, 0.14);
+}
+.paper-card.ai.cited {
+  box-shadow: 0 0 0 1px var(--gold), 0 4px 10px rgba(0, 0, 0, 0.14);
+}
+.paper-card.ai.selected.cited {
+  box-shadow: 0 0 0 2px var(--vermillion), 0 0 0 5px color-mix(in srgb, var(--gold) 70%, transparent), 0 4px 10px rgba(0, 0, 0, 0.14);
 }
 .card-kicker {
   font-size: 0.64rem;
@@ -438,6 +486,11 @@ img { max-width: 100%; display: block; }
   background: rgba(194, 59, 34, 0.12);
   pointer-events: none;
 }
+.region-hit.cited {
+  border-color: var(--gold);
+  background: rgba(196, 163, 90, 0.28);
+  box-shadow: 0 0 0 2px rgba(196, 163, 90, 0.45);
+}
 .draw-layer {
   position: absolute;
   inset: 0;
@@ -508,6 +561,21 @@ img { max-width: 100%; display: block; }
   font-size: 0.92rem;
   line-height: 1.45;
 }
+.ask-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.15rem 0 0.55rem;
+  margin-bottom: 0.45rem;
+  border-bottom: 1px dashed rgba(90, 70, 40, 0.22);
+}
+.ask-frozen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0.35rem;
+}
 .ask-form textarea {
   width: 100%;
   min-height: 72px;
@@ -519,23 +587,39 @@ img { max-width: 100%; display: block; }
 }
 .ask-form .row { display: flex; gap: 0.4rem; margin-top: 0.45rem; }
 .turn {
-  background: var(--paper);
+  background: color-mix(in srgb, var(--paper-2) 70%, #fffaf0);
   color: #1c1712;
   padding: 0.7rem;
-  margin: 0.7rem 0;
+  margin: 0.7rem 0 0;
   font-size: 0.85rem;
   white-space: pre-wrap;
+  border-left: 3px solid var(--ai-ink);
 }
+.turn-prompt {
+  margin: 0 0 0.45rem;
+  font-family: var(--serif);
+  font-style: italic;
+  color: #5c4c3c;
+}
+.cite-row { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 .cite {
   display: inline-block;
-  margin: 0.15rem 0.25rem 0 0;
+  margin: 0;
   background: #ead9a8;
   border: 0;
   color: #3a2a12;
-  border-radius: 999px;
-  padding: 0.1rem 0.5rem;
+  border-radius: 3px 10px 3px 10px;
+  padding: 0.18rem 0.55rem;
   font-size: 0.72rem;
   cursor: pointer;
+  box-shadow: 1px 1px 0 rgba(90, 70, 40, 0.2);
+}
+.cite-pdf { border-left: 3px solid #6b5d4a; }
+.cite-note { border-left: 3px solid var(--hand-ink); }
+.cite-ai { border-left: 3px solid var(--ai-ink); }
+.cite-region {
+  border-left: 3px dashed var(--vermillion);
+  background: #f3e0c4;
 }
 .cite-label {
   font-size: 0.68rem;

@@ -3,6 +3,7 @@ import {
   COMMAND_MARK_GLYPH,
   DEFAULT_LAYER_VISIBILITY,
   cardLayer,
+  citationKindVoice,
   clampRect,
   layerKey,
   sourceForCommitPath,
@@ -70,6 +71,15 @@ describe('clampRect', () => {
     expect(rect.w).toBeGreaterThan(0);
     expect(rect.x + rect.w).toBeLessThanOrEqual(1);
     expect(rect.y + rect.h).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('citationKindVoice', () => {
+  it('names printed pages, handwriting, AI cards, and pinned regions', () => {
+    expect(citationKindVoice('pdf-page')).toBe('Printed page');
+    expect(citationKindVoice('note')).toBe('Handwriting');
+    expect(citationKindVoice('ai')).toBe('AI card');
+    expect(citationKindVoice('region')).toBe('Pinned region');
   });
 });
 

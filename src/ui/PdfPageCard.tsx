@@ -1,4 +1,5 @@
 import { useRef, useState, type Dispatch, type PointerEvent as ReactPointerEvent } from 'react';
+import { isCardCited } from '../ai/context.ts';
 import { type Anchor, type NormalizedRect, type PdfPageCard as PdfPage } from '../types/domain.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { isCardVisible } from '../engine/selectors.ts';
@@ -14,6 +15,7 @@ interface Props {
 export function PdfPageCard({ page, state, dispatch }: Props) {
   const selected = state.selection.cardIds.includes(page.id);
   const hovered = state.hoverCardId === page.id;
+  const cited = isCardCited(state, page.id);
   const visible = isCardVisible(state, page);
   const pinning = state.anchorDraft;
   const drawing = pinning?.mode === 'region' && pinning.pageIndex === page.pageIndex;
@@ -85,7 +87,8 @@ export function PdfPageCard({ page, state, dispatch }: Props) {
   return (
     <article
       data-card={page.id}
-      className={`paper-card pdf ${selected ? 'selected' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
+      data-cited={cited ? 'true' : undefined}
+      className={`paper-card pdf ${selected ? 'selected' : ''} ${cited ? 'cited' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
       onPointerDown={(e) => e.stopPropagation()}
       onMouseEnter={() => dispatch({ type: 'set-hover', cardId: page.id })}
       onMouseLeave={() => dispatch({ type: 'set-hover', cardId: null })}
@@ -111,7 +114,7 @@ export function PdfPageCard({ page, state, dispatch }: Props) {
             <div
               key={anchor.id}
               data-region={anchor.id}
-              className="region-hit"
+              className={`region-hit ${state.citedAnchorId === anchor.id ? 'cited' : ''}`}
               style={{
                 left: `${anchor.target.rect.x * 100}%`,
                 top: `${anchor.target.rect.y * 100}%`,

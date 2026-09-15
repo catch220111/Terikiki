@@ -1,4 +1,22 @@
-import type { CardKind, LayerOrigin, LayerType } from '../types/domain.ts';
+import type {
+  AiCitation,
+  CardKind,
+  LayerOrigin,
+  LayerType,
+  NormalizedRect,
+} from '../types/domain.ts';
+
+export type { AiCitation };
+
+/** Pin evidence attached to a selected card so the tutor can cite a region. */
+export interface PinSnapshot {
+  anchorId: string;
+  kind: 'page' | 'region';
+  pageIndex: number;
+  pageCardId: string;
+  label: string;
+  rect?: NormalizedRect;
+}
 
 /** Snapshot of a selected card passed to a pluggable AI client. */
 export interface CardSnapshot {
@@ -8,16 +26,13 @@ export interface CardSnapshot {
   origin: LayerOrigin;
   type: LayerType;
   excerpt: string;
+  pageIndex?: number;
+  pins: readonly PinSnapshot[];
 }
 
 export interface AiRequest {
   prompt: string;
   selection: readonly CardSnapshot[];
-}
-
-export interface AiCitation {
-  cardId: string;
-  quote: string;
 }
 
 export interface AiResponse {
@@ -47,6 +62,8 @@ export function snapshotsFromCards(
     excerpt?: string;
     caption?: string;
     body?: string;
+    pageIndex?: number;
+    pins?: readonly PinSnapshot[];
   }[],
 ): CardSnapshot[] {
   return cards.map((card) => ({
@@ -56,5 +73,7 @@ export function snapshotsFromCards(
     origin: card.origin,
     type: card.type,
     excerpt: card.excerpt ?? card.caption ?? card.body ?? '',
+    pageIndex: card.pageIndex,
+    pins: card.pins ?? [],
   }));
 }

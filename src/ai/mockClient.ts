@@ -1,4 +1,5 @@
 import { EmptySelectionError, type AiClient, type AiRequest, type AiResponse } from './client.ts';
+import { citationsFromSnapshots, snapshotLabel } from './context.ts';
 
 function kindVoice(kind: AiRequest['selection'][number]['kind']): string {
   switch (kind) {
@@ -15,21 +16,27 @@ function kindVoice(kind: AiRequest['selection'][number]['kind']): string {
   }
 }
 
+function pinLine(card: AiRequest['selection'][number]): string {
+  if (card.pins.length === 0) return '';
+  const labels = card.pins.map((pin) => pin.label).join(', ');
+  return ` [pinned to ${labels}]`;
+}
+
 /**
  * Deterministic on-device tutor. No API keys.
- * Cites only cards present in the explicit selection.
+ * Cites only cards (and their region pins) present in the explicit selection.
  */
 export class MockAiClient implements AiClient {
   async complete(request: AiRequest): Promise<AiResponse> {
     if (request.selection.length === 0) throw new EmptySelectionError();
 
-    const citations = request.selection.map((card) => ({
-      cardId: card.id,
-      quote: card.excerpt.trim() || card.title,
-    }));
+    const citations = citationsFromSnapshots(request.selection);
 
     const gathered = request.selection
-      .map((card) => `• ${card.title} (${kindVoice(card.kind)})${card.excerpt ? ` — “${truncate(card.excerpt, 90)}”` : ''}`)
+      .map((card) => {
+        const excerpt = card.excerpt ? ` — “${truncate(card.excerpt, 90)}”` : '';
+        return `• ${snapshotLabel(card)} (${kindVoice(card.kind)})${excerpt}${pinLine(card)}`;
+      })
       .join('\n');
 
     const prompt = request.prompt.trim() || 'What should I notice in this selection?';
