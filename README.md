@@ -52,6 +52,7 @@ Open `http://127.0.0.1:5174`.
 | Stage 2 anchor lock (pending off-graph) | `src/matching/lock.ts` |
 | Note image import | `src/notes/importImage.ts` |
 | Pluggable AI + selection snapshots | `src/ai/client.ts`, `src/ai/context.ts`, `src/ai/mockClient.ts` |
+| Stage 3 Ask lock (live chips, in-gathering cites, tucked overlay) | `src/ai/lock.ts` |
 | Command-mark detector (proposals only) | `src/marks/detectMarks.ts` |
 | Printable export | `src/export/printSheet.ts` |
 | pdf.js loader | `src/pdf/loadPdf.ts` |
