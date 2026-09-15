@@ -11,7 +11,7 @@ export function clampZoom(zoom: number): number {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom));
 }
 
-/** Default Chromium-reader camera: fit the reading column, not a card canvas. */
+/** CLV lane — default Chromium-reader camera: fit the reading column, not a card canvas. */
 export function readingColumnCamera(
   viewWidth: number,
   viewHeight: number,
