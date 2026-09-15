@@ -10,8 +10,17 @@ const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../style
 
 describe('chrome', () => {
   it('drops craft-desk shell tropes', () => {
+    expect(css).toContain('--bg:');
+    expect(css).toContain('--surface:');
+    expect(css).toContain('--border:');
+    expect(css).toContain('--text:');
+    expect(css).toContain('--muted:');
+    expect(css).toContain('--accent:');
+    expect(css).toContain('--hand:');
+    expect(css).toContain('--ai:');
+    expect(css).toContain('--pdf:');
+    expect(css).toContain('--danger:');
     expect(css).not.toMatch(/Palatino|walnut|--vermillion|#c23b22|#c4a35a|#1b1410|note-tape|#f4ead4/);
-    expect(css).toContain('--sans:');
     expect(css).toContain('.glyph');
     expect(noteSrc).not.toContain('note-tape');
     expect(printSrc).not.toMatch(/Palatino|#f4ead4/);

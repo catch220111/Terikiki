@@ -10,7 +10,7 @@ Vite 8 + React 19 + TypeScript + `pdfjs-dist`. Node `>=22.12.0`.
 
 ## Chrome (this cut)
 
-The shell is a quiet consumer product: dark system chrome, tight sans type, light document cards on a spatial matrix. Handwriting cards stay largest. Origins are color + scale, not craft-desk texture.
+The shell is VL v1: named tokens (`--bg --surface --border --text --muted --accent --hand --ai --pdf --danger`), flat dark chrome, tight sans wordmark, 8–12px cards. Handwriting cards stay largest. Origins are token color + scale, not craft-desk texture.
 
 Stage 1–4 locks stay in force: handwriting primacy, Ask as a pulled tray, SelectionSet-only Ask context, pending matches never auto-pin, `FileBtn` a single label, one iframe print sheet, labeled trail, detect → confirm marks.
 
