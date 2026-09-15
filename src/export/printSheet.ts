@@ -167,7 +167,7 @@ export function buildPrintableHtml(state: DeskState): string {
     </div>
     <aside class="margin">
       <p class="kicker">Handwritten margin</p>
-      ${notes || '<p class="blank">Blank margin — pin a leaf to hang notes here.</p>'}
+      ${notes || '<p class="blank">Blank margin — pin a note to hang it here.</p>'}
     </aside>
   </div>
 </section>`;
