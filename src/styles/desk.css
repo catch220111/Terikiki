@@ -195,12 +195,16 @@ img { max-width: 100%; display: block; }
   position: relative;
   transform-origin: 0 0;
   display: flex;
-  gap: 2rem;
-  padding: 1.5rem 2rem 4rem;
+  gap: 1.75rem;
+  padding: 1.25rem 1.75rem 4rem;
   width: max-content;
 }
-.matrix-surface.orientation-vertical { flex-direction: column; }
-.matrix-surface.orientation-horizontal { flex-direction: row; align-items: flex-start; }
+.matrix-surface.orientation-vertical { flex-direction: row; align-items: flex-start; }
+.matrix-surface.orientation-horizontal { flex-direction: column; }
+
+.page-axis { display: flex; gap: 1.75rem; }
+.orientation-vertical .page-axis { flex-direction: column; }
+.orientation-horizontal .page-axis { flex-direction: row; align-items: flex-start; }
 
 .cluster {
   display: flex;
@@ -209,10 +213,18 @@ img { max-width: 100%; display: block; }
 }
 .orientation-vertical .cluster { flex-direction: row; }
 .orientation-horizontal .cluster { flex-direction: column; }
+.cluster.loose { flex-direction: column; width: 250px; }
+.orientation-horizontal .cluster.loose {
+  flex-direction: row;
+  width: auto;
+  align-items: flex-start;
+}
 
 .hang-axis { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 .orientation-vertical .hang-axis { flex-direction: row; }
 .orientation-horizontal .hang-axis { flex-direction: column; }
+.cluster.loose .hang-axis { flex-direction: column; }
+.orientation-horizontal .cluster.loose .hang-axis { flex-direction: row; }
 
 .cluster-label {
   writing-mode: vertical-rl;
@@ -224,7 +236,7 @@ img { max-width: 100%; display: block; }
   color: var(--gold);
   padding: 0.2rem 0;
 }
-.orientation-horizontal .cluster-label {
+.cluster.loose .cluster-label {
   writing-mode: horizontal-tb;
   transform: none;
 }
@@ -269,9 +281,13 @@ img { max-width: 100%; display: block; }
 }
 .paper-card img {
   width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  object-position: top;
   background: white;
   border: 1px solid #d7cbb3;
 }
+.paper-card.pdf img { max-height: none; object-fit: contain; }
 .ghost {
   min-height: 110px;
   display: grid;
@@ -373,7 +389,7 @@ img { max-width: 100%; display: block; }
   font-size: 0.85rem;
   white-space: pre-wrap;
 }
-.turn .cite {
+.cite {
   display: inline-block;
   margin: 0.15rem 0.25rem 0 0;
   background: #ead9a8;
@@ -382,6 +398,14 @@ img { max-width: 100%; display: block; }
   border-radius: 999px;
   padding: 0.1rem 0.5rem;
   font-size: 0.72rem;
+  cursor: pointer;
+}
+.cite-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7a6a55;
+  margin: 0.55rem 0 0.25rem;
 }
 .mark-inbox { padding: 0 1rem 1rem; border-top: 1px dashed rgba(196, 163, 90, 0.25); }
 .mark-item {

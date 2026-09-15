@@ -4,7 +4,7 @@ import { makeNote, makePdfPage } from './engine/selectors.ts';
 import { loadPdfFromFile, loadPdfFromUrl, type LoadedPdf } from './pdf/loadPdf.ts';
 import { suggestMatches } from './matching/stubMatcher.ts';
 import { detectMarks } from './marks/detectMarks.ts';
-import { buildPrintableHtml } from './export/printSheet.ts';
+import { buildPrintableHtml, printHtml } from './export/printSheet.ts';
 import { SAMPLE_DOCUMENT_ID, SAMPLE_DOCUMENT_TITLE, SAMPLE_NOTES, SAMPLE_PDF_URL } from './demo/bootstrap.ts';
 import { DeskShell } from './ui/DeskShell.tsx';
 import type { DeskAction } from './engine/deskState.ts';
@@ -29,7 +29,7 @@ async function ingestPdf(pdf: LoadedPdf, dispatch: (action: DeskAction) => void,
   });
   for (let pageIndex = 0; pageIndex < pdf.pageCount; pageIndex++) {
     const [canvas, text] = await Promise.all([pdf.getPageCanvas(pageIndex, 1.2), pdf.getPageText(pageIndex)]);
-    const title = text.split(/[.!?]/)[0]?.slice(0, 72).trim() || `Page ${pageIndex + 1}`;
+    const title = text.split(/[.!?]/)[0]?.trim().slice(0, 48) || `Page ${pageIndex + 1}`;
     dispatch({
       type: 'patch-page-image',
       pageId: `${pdf.documentId}:p${pageIndex}`,
@@ -100,17 +100,26 @@ function DeskApp() {
     setStatus(`Imported handwriting “${note.title}” — suggestions stay pending until you accept.`);
   }
 
+  function onDetectMarks() {
+    let added = 0;
+    for (const note of state.notes) {
+      const existing = new Set(state.marks.filter((m) => m.noteId === note.id).map((m) => m.kind));
+      const fresh = detectMarks(note).filter((m) => !existing.has(m.kind));
+      if (fresh.length === 0) continue;
+      added += fresh.length;
+      dispatch({ type: 'propose-marks', marks: fresh });
+    }
+    setStatus(
+      added > 0
+        ? `Detected ${added} mark(s). Confirm or dismiss them in the trail — nothing is committed yet.`
+        : 'No new marks. Confirm or dismiss the pending ones in the trail.',
+    );
+  }
+
   function onExport() {
     const html = buildPrintableHtml(state);
-    const frame = window.open('', '_blank', 'noopener,noreferrer');
-    if (!frame) {
-      setStatus('Pop-up blocked — allow windows to print the desk.');
-      return;
-    }
-    frame.document.write(html);
-    frame.document.close();
-    frame.focus();
-    frame.print();
+    if (!printHtml(html)) setStatus('Could not open the print sheet.');
+    else setStatus('Print dialog opened for the desk sheet.');
   }
 
   return (
@@ -120,6 +129,7 @@ function DeskApp() {
       ai={ai}
       onImportPdf={onImportPdf}
       onImportNote={onImportNote}
+      onDetectMarks={onDetectMarks}
       onExport={onExport}
       status={status}
     />

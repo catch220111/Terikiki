@@ -35,6 +35,7 @@ export interface DeskState {
   aiTurns: AiTurn[];
   hoverCardId: string | null;
   focusCardId: string | null;
+  revealNonce: number;
   askOpen: boolean;
   anchorDraft: AnchorDraft | null;
 }
@@ -49,12 +50,13 @@ export const initialDeskState: DeskState = {
   selection: { cardIds: [] },
   layers: { ...DEFAULT_LAYER_VISIBILITY },
   orientation: 'vertical',
-  camera: { x: 48, y: 36, zoom: 1 },
+  camera: { x: 28, y: 18, zoom: 0.84 },
   trail: [],
   marks: [],
   aiTurns: [],
   hoverCardId: null,
   focusCardId: null,
+  revealNonce: 0,
   askOpen: true,
   anchorDraft: null,
 };
@@ -179,6 +181,7 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
       return {
         ...state,
         focusCardId: action.cardId,
+        revealNonce: action.cardId ? state.revealNonce + 1 : state.revealNonce,
         selection:
           action.cardId && !state.selection.cardIds.includes(action.cardId)
             ? { cardIds: [...state.selection.cardIds, action.cardId] }

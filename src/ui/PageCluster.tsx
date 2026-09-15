@@ -38,22 +38,24 @@ export function PageCluster({ state, dispatch }: Props) {
           </div>
         </section>
       )}
-      {state.pages.map((page) => {
-        const hanging = cardsAnchoredToPage(state, page.pageIndex).filter(
-          (card): card is Note | AiCard => card.kind === 'note' || card.kind === 'ai',
-        );
-        return (
-          <section key={page.id} className="cluster">
-            <div className="cluster-label">p{page.pageIndex + 1}</div>
-            <PdfPageCard page={page} state={state} dispatch={dispatch} />
-            <div className="hang-axis">
-              {hanging.map((card) => (
-                <HangCard key={card.id} card={card} state={state} dispatch={dispatch} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+      <div className="page-axis">
+        {state.pages.map((page) => {
+          const hanging = cardsAnchoredToPage(state, page.pageIndex).filter(
+            (card): card is Note | AiCard => card.kind === 'note' || card.kind === 'ai',
+          );
+          return (
+            <section key={page.id} className="cluster">
+              <div className="cluster-label">p{page.pageIndex + 1}</div>
+              <PdfPageCard page={page} state={state} dispatch={dispatch} />
+              <div className="hang-axis">
+                {hanging.map((card) => (
+                  <HangCard key={card.id} card={card} state={state} dispatch={dispatch} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
     </>
   );
 }

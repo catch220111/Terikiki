@@ -2,6 +2,7 @@ import { useRef, useState, type Dispatch, type PointerEvent as ReactPointerEvent
 import { clampRect, type Anchor, type PdfPageCard as PdfPage } from '../types/domain.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { isCardVisible } from '../engine/selectors.ts';
+import { isAdditiveClick } from './pointer.ts';
 
 interface Props {
   page: PdfPage;
@@ -85,7 +86,7 @@ export function PdfPageCard({ page, state, dispatch }: Props) {
       className={`paper-card pdf ${selected ? 'selected' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
       onClick={(e) => {
         e.stopPropagation();
-        select(e.shiftKey);
+        select(isAdditiveClick(e));
       }}
       onPointerDown={(e) => e.stopPropagation()}
       onMouseEnter={() => dispatch({ type: 'set-hover', cardId: page.id })}

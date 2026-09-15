@@ -1,7 +1,6 @@
 import { useEffect, type Dispatch } from 'react';
 import type { AiClient } from '../ai/client.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
-import { detectMarks } from '../marks/detectMarks.ts';
 import { TopRail } from './TopRail.tsx';
 import { SelectionTray } from './SelectionTray.tsx';
 import { TrailStrip } from './TrailStrip.tsx';
@@ -14,11 +13,21 @@ interface Props {
   ai: AiClient;
   onImportPdf: (file: File) => void;
   onImportNote: (file: File) => void;
+  onDetectMarks: () => void;
   onExport: () => void;
   status: string;
 }
 
-export function DeskShell({ state, dispatch, ai, onImportPdf, onImportNote, onExport, status }: Props) {
+export function DeskShell({
+  state,
+  dispatch,
+  ai,
+  onImportPdf,
+  onImportNote,
+  onDetectMarks,
+  onExport,
+  status,
+}: Props) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') dispatch({ type: 'cancel-anchor' });
@@ -26,14 +35,6 @@ export function DeskShell({ state, dispatch, ai, onImportPdf, onImportNote, onEx
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [dispatch]);
-
-  function onDetectMarks() {
-    for (const note of state.notes) {
-      const existing = new Set(state.marks.filter((m) => m.noteId === note.id).map((m) => m.kind));
-      const fresh = detectMarks(note).filter((m) => !existing.has(m.kind));
-      if (fresh.length > 0) dispatch({ type: 'propose-marks', marks: fresh });
-    }
-  }
 
   return (
     <div className="desk">

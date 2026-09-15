@@ -111,6 +111,7 @@ export function AskPanel({ state, dispatch, ai }: Props) {
         {last && (
           <article className="turn">
             {last.answer}
+            <div className="cite-label">Jump to cited cards</div>
             <div>
               {last.citations.map((cite) => (
                 <button

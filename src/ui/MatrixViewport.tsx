@@ -20,7 +20,23 @@ export function MatrixViewport({ state, dispatch }: Props) {
 
   useEffect(() => {
     setSurface(surfaceRef.current);
-  }, [state.pages.length, state.notes.length, state.aiCards.length]);
+  }, [state.pages.length, state.notes.length, state.aiCards.length, state.anchors.length]);
+
+  useEffect(() => {
+    if (!state.focusCardId || state.revealNonce === 0) return;
+    const viewport = viewportRef.current;
+    const surfaceEl = surfaceRef.current;
+    if (!viewport || !surfaceEl) return;
+    const el = surfaceEl.querySelector(`[data-card="${state.focusCardId}"]`);
+    if (!el) return;
+    const card = el.getBoundingClientRect();
+    const view = viewport.getBoundingClientRect();
+    dispatch({
+      type: 'nudge-camera',
+      dx: view.left + view.width / 2 - (card.left + card.width / 2),
+      dy: view.top + view.height / 2 - (card.top + card.height / 2),
+    });
+  }, [dispatch, state.focusCardId, state.revealNonce]);
 
   const onWheel = useCallback(
     (e: WheelEvent) => {

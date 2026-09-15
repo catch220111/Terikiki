@@ -2,6 +2,7 @@ import type { Dispatch } from 'react';
 import type { AiCard, NoteCard } from '../types/domain.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { confirmedMarksFor, isCardVisible, pendingSuggestionsFor } from '../engine/selectors.ts';
+import { isAdditiveClick } from './pointer.ts';
 
 interface NoteProps {
   note: NoteCard;
@@ -28,7 +29,7 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
       <button
         type="button"
         style={{ all: 'unset', display: 'block', cursor: 'pointer', width: '100%' }}
-        onClick={(e) => dispatch({ type: 'select-card', cardId: note.id, additive: e.shiftKey })}
+        onClick={(e) => dispatch({ type: 'select-card', cardId: note.id, additive: isAdditiveClick(e) })}
       >
         <div className="card-kicker">Handwriting</div>
         {visible ? (
@@ -119,7 +120,7 @@ export function AiCardView({
       className={`paper-card ai ${selected ? 'selected' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
       onClick={(e) => {
         e.stopPropagation();
-        dispatch({ type: 'select-card', cardId: card.id, additive: e.shiftKey });
+        dispatch({ type: 'select-card', cardId: card.id, additive: isAdditiveClick(e) });
       }}
       onPointerDown={(e) => e.stopPropagation()}
       onMouseEnter={() => dispatch({ type: 'set-hover', cardId: card.id })}

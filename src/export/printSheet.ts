@@ -85,3 +85,30 @@ function escapeHtml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;');
 }
+
+/** Print without window.open (avoids popup blockers). */
+export function printHtml(html: string): boolean {
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.position = 'fixed';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  document.body.appendChild(iframe);
+  const win = iframe.contentWindow;
+  const doc = iframe.contentDocument;
+  if (!win || !doc) {
+    iframe.remove();
+    return false;
+  }
+  doc.open();
+  doc.write(html);
+  doc.close();
+  const cleanup = () => iframe.remove();
+  win.addEventListener('afterprint', cleanup);
+  win.focus();
+  win.print();
+  return true;
+}

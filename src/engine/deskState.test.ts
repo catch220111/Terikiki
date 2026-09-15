@@ -130,6 +130,17 @@ describe('deskReducer', () => {
     expect(state.anchors[0]?.target.kind).toBe('region');
   });
 
+  it('focus-card reveals without dropping the rest of the selection', () => {
+    let state = hydrated();
+    const a = state.pages[0]!.id;
+    const b = state.pages[1]!.id;
+    state = deskReducer(state, { type: 'select-card', cardId: a, additive: false });
+    state = deskReducer(state, { type: 'focus-card', cardId: b });
+    expect(state.selection.cardIds).toEqual([a, b]);
+    expect(state.revealNonce).toBe(1);
+    expect(state.focusCardId).toBe(b);
+  });
+
   it('AI turns record the selection snapshot, not the whole desk', () => {
     let state = hydrated();
     const a = state.pages[0]!.id;
