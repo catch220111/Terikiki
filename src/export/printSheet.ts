@@ -104,9 +104,31 @@ const PRINT_STYLES = `
   .hang.ai h3 { font-size: 0.88rem; }
   .marks { color: #c23b22; font-family: "Segoe Script", "Bradley Hand", "Apple Chancery", cursive; font-style: normal; }
   .blank { color: #8a7b66; font-style: italic; font-size: 0.9rem; }
-  .trail { font-size: 0.92rem; padding-left: 1.15rem; }
-  .trail li { margin: 0.35rem 0; }
-  time { color: #6b655c; font-size: 0.78rem; }
+  .trail-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.28rem 0.55rem;
+    list-style: none;
+    margin: 1.15rem 0 0;
+    padding: 0.55rem 0 0;
+    border-top: 1px dashed #cbbfa8;
+    font-size: 0.78rem;
+  }
+  .trail-strip li {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.28rem;
+    margin: 0;
+    white-space: nowrap;
+  }
+  .trail-strip .idx { color: #8a6a28; font-size: 0.68rem; }
+  .trail-kicker {
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7a6a55;
+    margin: 1.15rem 0 0;
+  }
   .voice-ink { color: #27563b; font-style: italic; }
   .voice-ai { color: #24356b; font-style: italic; }
   @media print {
@@ -156,10 +178,11 @@ export function buildPrintableHtml(state: DeskState): string {
     .map((card) => hangArticle(state, card))
     .join('');
 
-  const trail = orderedTrail(state.trail)
-    .map((event) => {
+  const trail = orderedTrail(state.trail);
+  const strip = trail
+    .map((event, index) => {
       const voice = trailVoice(event.fromAi);
-      return `<li data-trail-kind="${escapeHtml(event.kind)}" data-from-ai="${event.fromAi ? 'true' : 'false'}" data-card="${escapeHtml(event.cardId)}"><time>${escapeHtml(event.at)}</time> <strong>${escapeHtml(trailKindLabel(event.kind))}</strong> <em class="voice-${voice}">(${voice === 'ai' ? 'AI' : 'ink'})</em> — ${escapeHtml(event.summary)}</li>`;
+      return `<li data-trail-kind="${escapeHtml(event.kind)}" data-from-ai="${event.fromAi ? 'true' : 'false'}" data-card="${escapeHtml(event.cardId)}"><span class="idx">${index + 1}.</span> ${escapeHtml(trailKindLabel(event.kind))} <em class="voice-${voice}">(${voice === 'ai' ? 'AI' : 'ink'})</em></li>`;
     })
     .join('');
 
@@ -179,12 +202,14 @@ export function buildPrintableHtml(state: DeskState): string {
     </header>
     ${pageBlocks || '<p class="blank">No PDF pages on this desk.</p>'}
     <section class="sheet working">
-      <h2>Working space</h2>
       <p class="kicker">Loose leaves</p>
       ${loose || '<p class="blank">No loose leaves — every note is hanging in a printed margin.</p>'}
-      <h2>Thinking trail</h2>
-      <ol class="trail">${trail || '<li>Empty trail.</li>'}</ol>
     </section>
+    ${
+      strip
+        ? `<p class="trail-kicker">Thinking trail</p><ol class="trail-strip">${strip}</ol>`
+        : ''
+    }
   </article>
 </body>
 </html>`;

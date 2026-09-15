@@ -42,8 +42,9 @@ describe('buildPrintableHtml', () => {
     expect(html).toContain('two oscillators share energy');
     expect(html).toContain('Why beating?');
     expect(html).toContain('(ink)');
-    expect(html).toContain('Thinking trail');
+    expect(html).toContain('class="trail-strip"');
     expect(html).toContain('First note');
     expect(html).toContain('<span class="marks">?</span>');
+    expect(html).not.toContain('<time');
   });
 });

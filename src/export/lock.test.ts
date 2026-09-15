@@ -9,8 +9,11 @@ import {
   printPathUsesPopup,
   printSheetForcesSplitPages,
   printSheetHasSourceAndWorkingMargin,
+  printSheetHasThinTrailStrip,
+  printSheetOffersMarkConfirm,
   unlabeledAiOnPrintSheet,
   unlabeledStudentOnPrintSheet,
+  unconfirmedGlyphsPrintedAsMarks,
 } from './lock.ts';
 
 function sheetState() {
@@ -83,11 +86,15 @@ function sheetState() {
 
 describe('Stage 4 print lock', () => {
   it('prints one coherent sheet: source excerpt + handwritten working margin, AI vs ink labeled', () => {
-    const html = buildPrintableHtml(sheetState());
+    const state = sheetState();
+    const html = buildPrintableHtml(state);
     expect(printSheetHasSourceAndWorkingMargin(html)).toBe(true);
     expect(printSheetForcesSplitPages(html)).toBe(false);
+    expect(printSheetHasThinTrailStrip(html)).toBe(true);
+    expect(printSheetOffersMarkConfirm(html)).toBe(false);
     expect(unlabeledAiOnPrintSheet(html)).toEqual([]);
     expect(unlabeledStudentOnPrintSheet(html)).toEqual([]);
+    expect(unconfirmedGlyphsPrintedAsMarks(html, state.marks)).toEqual([]);
     expect(html).toContain('print-sheet');
     expect(html).toContain('two oscillators share energy');
     expect(html).toContain('Why beating?');
@@ -99,13 +106,17 @@ describe('Stage 4 print lock', () => {
     expect(html).toContain('<span class="marks">?</span>');
     expect(html).not.toContain('<span class="marks">*</span>');
     expect(html).not.toContain('Continuation');
+    expect(html).not.toContain('<time');
+    expect(html).toContain('class="trail-strip"');
   });
 
-  it('uses an iframe print path, never a popup', () => {
+  it('uses an iframe print path, never a popup, and never confirms marks from the sheet', () => {
     expect(printPathUsesPopup(src)).toBe(false);
     expect(printPathUsesIframe(src)).toBe(true);
     expect(printPathUsesPopup(previewSrc)).toBe(false);
     expect(printPathUsesIframe(previewSrc)).toBe(true);
     expect(src).toContain('printIframe');
+    expect(src).not.toContain('confirm-mark');
+    expect(src).not.toContain('dismiss-mark');
   });
 });

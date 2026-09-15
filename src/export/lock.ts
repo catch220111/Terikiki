@@ -43,3 +43,37 @@ export function printPathUsesPopup(source: string): boolean {
 export function printPathUsesIframe(source: string): boolean {
   return /createElement\(\s*['"]iframe['"]\s*\)/.test(source) || /<iframe\b/.test(source);
 }
+
+/** Trail on the sheet is a thin ordered strip, not a verbose log. */
+export function printSheetHasThinTrailStrip(html: string): boolean {
+  if (!html.includes('class="trail-strip"')) return false;
+  if (html.includes('<time')) return false;
+  if (html.includes('class="trail"') && !html.includes('trail-strip')) return false;
+  return true;
+}
+
+/** Confirm/dismiss lives in the app UI. The sheet must not offer mark actions. */
+export function printSheetOffersMarkConfirm(html: string): boolean {
+  return (
+    html.includes('mark-confirm') ||
+    html.includes('Marks to confirm') ||
+    html.includes('confirm-mark') ||
+    html.includes('>Confirm<') ||
+    html.includes('>Dismiss<')
+  );
+}
+
+export function unconfirmedGlyphsPrintedAsMarks(
+  html: string,
+  marks: readonly { glyph: string; status: string }[],
+): string[] {
+  const printed = new Set(
+    [...html.matchAll(/<span class="marks">([^<]*)<\/span>/g)].flatMap((match) =>
+      (match[1] ?? '')
+        .split(/\s+/)
+        .map((glyph) => glyph.trim())
+        .filter(Boolean),
+    ),
+  );
+  return marks.filter((mark) => mark.status !== 'confirmed' && printed.has(mark.glyph)).map((mark) => mark.glyph);
+}
