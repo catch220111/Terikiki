@@ -16,6 +16,7 @@ export function prefersReducedMotion(): boolean {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/** Ease-out lerp, clamped to the target — no overshoot past the page. */
 export function lerpCamera(from: Camera, to: Camera, t: number): Camera {
   const e = easeOutCubic(t);
   return {

@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import viewportSrc from './MatrixViewport.tsx?raw';
 import {
   PAGE_STACK_GAP_PX,
   PDF_PAGE_FRAME,
@@ -22,8 +22,8 @@ describe('CLV reading-column camera', () => {
     const viewHeight = 640;
     const camera = readingColumnCamera(viewWidth, viewHeight);
     expect(camera.x).toBeCloseTo(viewWidth * (1 - camera.zoom) / 2);
-    expect(camera.zoom).toBeGreaterThan(0);
-    // Gutter keeps the first page top near the reading inset.
+    expect(camera.zoom).toBeGreaterThan(1);
+    expect(camera).not.toEqual({ x: 0, y: 0, zoom: 1 });
     expect(camera.y).toBeCloseTo(READING_GUTTER_PX * (1 - camera.zoom));
   });
 
@@ -42,6 +42,8 @@ describe('CLV filmstrip glide', () => {
     expect(PAGE_GLIDE_MS).toBeLessThanOrEqual(280);
     expect(easeOutCubic(0)).toBe(0);
     expect(easeOutCubic(1)).toBe(1);
+    expect(easeOutCubic(-1)).toBe(0);
+    expect(easeOutCubic(2)).toBe(1);
     let prev = -1;
     for (let i = 0; i <= 10; i++) {
       const next = easeOutCubic(i / 10);
@@ -59,17 +61,23 @@ describe('CLV filmstrip glide', () => {
       from,
       READING_GUTTER_PX,
     );
+    expect(lerpCamera(from, to, 0)).toEqual(from);
     const mid = lerpCamera(from, to, 0.5);
     expect(mid.x).toBeGreaterThan(Math.min(from.x, to.x));
     expect(mid.x).toBeLessThan(Math.max(from.x, to.x));
+    expect(mid.y).toBeGreaterThan(Math.min(from.y, to.y));
+    expect(mid.y).toBeLessThan(Math.max(from.y, to.y));
     expect(lerpCamera(from, to, 1)).toEqual(to);
+    expect(lerpCamera(from, to, 2)).toEqual(to);
   });
 
-  it('wires MatrixViewport to readingColumnCamera and PAGE_GLIDE_MS', () => {
-    const viewportSrc = readFileSync(new URL('./MatrixViewport.tsx', import.meta.url), 'utf8');
-    expect(viewportSrc).toContain('readingColumnCamera');
+  it('first-frames the reading column, then glides on filmstrip focus', () => {
+    expect(viewportSrc).toContain('readingColumnCamera(view.width, view.height)');
+    expect(viewportSrc).toContain('framedDoc');
     expect(viewportSrc).toContain('PAGE_GLIDE_MS');
     expect(viewportSrc).toContain('lerpCamera');
     expect(viewportSrc).toContain('cameraFramingPage');
+    expect(viewportSrc).toContain('requestAnimationFrame');
+    expect(viewportSrc).toContain("type: 'set-camera'");
   });
 });

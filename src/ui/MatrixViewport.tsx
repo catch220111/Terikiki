@@ -46,6 +46,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
   }, [state.pages.length, state.notes.length, state.aiCards.length, state.anchors.length]);
 
   useLayoutEffect(() => {
+    // CLV: first-frame the PDF reading column, not an empty/scattered canvas.
     const docId = state.document?.id ?? null;
     if (!docId || state.pages.length === 0) return;
     if (framedDoc.current === docId) return;
