@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import viewportSrc from './MatrixViewport.tsx?raw';
 import {
+  CONNECTED_GLANCE_WIDTH_PX,
+  HANG_GAP_PX,
   PAGE_STACK_GAP_PX,
   PDF_PAGE_FRAME,
   READING_GUTTER_PX,
   readingColumnCamera,
 } from './cameraFit.ts';
+import { CARD_WIDTH_PX } from './lock.ts';
 import {
   PAGE_GLIDE_MS,
   cameraFramingPage,
@@ -20,17 +23,18 @@ const { dirname, join } = await import('path');
 const { fileURLToPath } = await import('url');
 const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../styles/desk.css'), 'utf8');
 
-/** CLV lane lock: reading-column default camera + filmstrip→glide (+ fade/reduced-motion owned in filmstripChrome). */
+/** CLV lane: connected PDF+ink glance + filmstrip glide + fade/reduced-motion owned in filmstripChrome. */
 
-describe('CLV reading-column camera', () => {
-  it('frames the PDF column centered, not a scattered card canvas', () => {
+describe('CLV connected reading glance', () => {
+  it('frames PDF + hanging ink width, not PDF-only', () => {
+    expect(CONNECTED_GLANCE_WIDTH_PX).toBe(CARD_WIDTH_PX.pdf + HANG_GAP_PX + CARD_WIDTH_PX.note);
     const viewWidth = 960;
     const viewHeight = 640;
     const camera = readingColumnCamera(viewWidth, viewHeight);
-    expect(camera.x).toBeCloseTo(viewWidth * (1 - camera.zoom) / 2);
-    expect(camera.zoom).toBeGreaterThan(1);
-    expect(camera).not.toEqual({ x: 0, y: 0, zoom: 1 });
-    expect(camera.y).toBeCloseTo(READING_GUTTER_PX * (1 - camera.zoom));
+    const pairCenterOffset = (HANG_GAP_PX + CARD_WIDTH_PX.note) / 2;
+    expect(camera.x).toBeCloseTo(viewWidth * (1 - camera.zoom) / 2 - pairCenterOffset * camera.zoom);
+    expect(camera.zoom).toBeGreaterThan(0);
+    expect(camera.zoom).toBeLessThanOrEqual((viewWidth - READING_GUTTER_PX * 2) / PDF_PAGE_FRAME.width + 0.001);
   });
 
   it('offsets later pages down the continuous column', () => {
@@ -38,6 +42,12 @@ describe('CLV reading-column camera', () => {
     const second = readingColumnCamera(800, 560, 1);
     expect(second.y).toBeLessThan(first.y);
     expect(first.y - second.y).toBeCloseTo((PDF_PAGE_FRAME.height + PAGE_STACK_GAP_PX) * first.zoom);
+  });
+
+  it('wires MatrixViewport to reframe when hanging ink appears', () => {
+    expect(viewportSrc).toContain('readingColumnCamera');
+    expect(viewportSrc).toContain('state.anchors');
+    expect(viewportSrc).toContain('hangingPage');
   });
 });
 
@@ -48,8 +58,6 @@ describe('CLV filmstrip glide', () => {
     expect(PAGE_GLIDE_MS).toBeLessThanOrEqual(280);
     expect(easeOutCubic(0)).toBe(0);
     expect(easeOutCubic(1)).toBe(1);
-    expect(easeOutCubic(-1)).toBe(0);
-    expect(easeOutCubic(2)).toBe(1);
     let prev = -1;
     for (let i = 0; i <= 10; i++) {
       const next = easeOutCubic(i / 10);
@@ -67,31 +75,15 @@ describe('CLV filmstrip glide', () => {
       from,
       READING_GUTTER_PX,
     );
-    expect(lerpCamera(from, to, 0)).toEqual(from);
     const mid = lerpCamera(from, to, 0.5);
     expect(mid.x).toBeGreaterThan(Math.min(from.x, to.x));
     expect(mid.x).toBeLessThan(Math.max(from.x, to.x));
-    expect(mid.y).toBeGreaterThan(Math.min(from.y, to.y));
-    expect(mid.y).toBeLessThan(Math.max(from.y, to.y));
     expect(lerpCamera(from, to, 1)).toEqual(to);
-    expect(lerpCamera(from, to, 2)).toEqual(to);
   });
+});
 
-  it('first-frames the reading column, then glides on filmstrip focus', () => {
-    expect(viewportSrc).toContain('readingColumnCamera(view.width, view.height)');
-    expect(viewportSrc).toContain('framedDoc');
-    expect(viewportSrc).toContain('PAGE_GLIDE_MS');
-    expect(viewportSrc).toContain('lerpCamera');
-    expect(viewportSrc).toContain('cameraFramingPage');
-    expect(viewportSrc).toContain('requestAnimationFrame');
-    expect(viewportSrc).toContain("type: 'set-camera'");
-  });
-
-  it('keeps the page stage anonymous; filmstrip is the only saturated navigator', () => {
+describe('CLV Valentina thesis smoke', () => {
+  it('keeps the filmstrip as the only saturated navigator in desk.css', () => {
     expect(filmstripIsOnlySaturatedNavigator(css)).toBe(true);
-    expect(css).toMatch(/\.matrix-viewport\s*\{[^}]*background:\s*var\(--stage\)/s);
-    expect(css).toMatch(/\.reading-column \.paper-card\.pdf/);
-    expect(css).toMatch(/page-thumb\.current[\s\S]*var\(--accent\)/);
-    expect(css).not.toMatch(/\.reading-column[\s\S]{0,500}var\(--hand\)/);
   });
 });

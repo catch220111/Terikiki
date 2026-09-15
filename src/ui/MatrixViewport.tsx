@@ -46,18 +46,26 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
   }, [state.pages.length, state.notes.length, state.aiCards.length, state.anchors.length]);
 
   useLayoutEffect(() => {
-    // CLV: first-frame the PDF reading column, not an empty/scattered canvas.
+    // CLV: first-frame PDF + hanging ink together (connected study glance), not filmstrip-only.
     const docId = state.document?.id ?? null;
     if (!docId || state.pages.length === 0) return;
-    if (framedDoc.current === docId) return;
+    const hangingPage =
+      state.pages.find((page) =>
+        state.anchors.some((anchor) => anchor.target.pageIndex === page.pageIndex),
+      )?.pageIndex ?? 0;
+    const frameKey = `${docId}:p${hangingPage}:a${state.anchors.length}`;
+    if (framedDoc.current === frameKey) return;
     const viewport = viewportRef.current;
     if (!viewport) return;
     const frame = () => {
-      if (framedDoc.current === docId) return true;
+      if (framedDoc.current === frameKey) return true;
       const view = viewport.getBoundingClientRect();
       if (view.width < 40) return false;
-      framedDoc.current = docId;
-      dispatch({ type: 'set-camera', camera: readingColumnCamera(view.width, view.height) });
+      framedDoc.current = frameKey;
+      dispatch({
+        type: 'set-camera',
+        camera: readingColumnCamera(view.width, view.height, hangingPage),
+      });
       return true;
     };
     if (frame()) return;
@@ -66,7 +74,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
     });
     ro.observe(viewport);
     return () => ro.disconnect();
-  }, [dispatch, state.document?.id, state.pages.length]);
+  }, [dispatch, state.anchors, state.document?.id, state.pages]);
 
   useEffect(() => {
     if (!state.focusCardId || state.revealNonce === 0) return;

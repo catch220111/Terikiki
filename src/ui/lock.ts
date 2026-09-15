@@ -360,6 +360,7 @@ export function readingColumnIsDefault(
     !/radial-gradient/.test(ruleBodyContaining(css, 'matrix-viewport')) &&
     viewportSrc.includes('readingColumnCamera') &&
     cameraSrc.includes('readingColumnCamera') &&
+    cameraSrc.includes('CONNECTED_GLANCE_WIDTH_PX') &&
     cameraSrc.includes('viewWidth * (1 - zoom) / 2')
   );
 }
