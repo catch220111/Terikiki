@@ -3,7 +3,7 @@ import { DeskProvider, useDesk } from './engine/DeskContext.tsx';
 import { makeNote, makePdfPage } from './engine/selectors.ts';
 import { loadPdfFromFile, loadPdfFromUrl, type LoadedPdf } from './pdf/loadPdf.ts';
 import { detectMarks } from './marks/detectMarks.ts';
-import { buildPrintableHtml, printHtml } from './export/printSheet.ts';
+import { buildPrintableHtml } from './export/printSheet.ts';
 import { SAMPLE_DOCUMENT_ID, SAMPLE_DOCUMENT_TITLE, SAMPLE_NOTES, SAMPLE_PDF_URL } from './demo/bootstrap.ts';
 import { DeskShell } from './ui/DeskShell.tsx';
 import type { DeskAction } from './engine/deskState.ts';
@@ -145,13 +145,11 @@ function DeskApp() {
 
   function onExport() {
     setPrintPreview(buildPrintableHtml(state));
-    setStatus('Review packet ready — Send to printer, or Close.');
+    setStatus('Print sheet ready — Send to printer, or Close.');
   }
 
-  function onSendToPrinter() {
-    if (!printPreview) return;
-    if (!printHtml(printPreview)) setStatus('Could not open the print dialog.');
-    else setStatus('Print dialog opened for the review packet.');
+  function onSendToPrinter(ok: boolean) {
+    setStatus(ok ? 'Print dialog opened for the iframe sheet.' : 'Could not print the iframe sheet.');
   }
 
   return (

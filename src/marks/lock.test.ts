@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { detectMarks } from './detectMarks.ts';
-import { canTransitionMark, confirmedMarks, detectedOnly, silentFireOnConfirm } from './lock.ts';
+import { canTransitionMark, confirmedMarks, detectedOnly, detectorSilentConfirmed, silentFireOnConfirm } from './lock.ts';
 import { deskReducer, initialDeskState } from '../engine/deskState.ts';
 import { makeNote, makePdfPage } from '../engine/selectors.ts';
 import { COMMAND_MARK_GLYPH, COMMAND_MARK_MEANING, type CommandMark } from '../types/domain.ts';
@@ -42,6 +42,7 @@ describe('Stage 4 command-mark lock', () => {
     });
     state = deskReducer(state, { type: 'import-note', note });
     const found = detectMarks(note);
+    expect(detectorSilentConfirmed(found)).toEqual([]);
     expect(found.every((mark) => mark.status === 'detected')).toBe(true);
     state = deskReducer(state, { type: 'propose-marks', marks: found });
     expect(detectedOnly(state.marks)).toHaveLength(found.length);

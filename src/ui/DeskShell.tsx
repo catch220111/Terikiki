@@ -18,7 +18,7 @@ interface Props {
   onExport: () => void;
   printHtml: string | null;
   onClosePrint: () => void;
-  onSendToPrinter: () => void;
+  onSendToPrinter: (ok: boolean) => void;
   status: string;
 }
 

@@ -42,8 +42,8 @@ const PRINT_STYLES = `
     border-top: 1px dashed #cbbfa8;
     break-inside: avoid;
   }
-  .page-sheet { break-after: page; page-break-after: always; }
-  .continuation { break-before: page; page-break-before: always; }
+  .page-sheet { break-inside: avoid; }
+  .working { break-inside: avoid; }
   h2 {
     font-size: 1.05rem;
     margin: 0 0 0.85rem;
@@ -112,8 +112,6 @@ const PRINT_STYLES = `
   @media print {
     body { background: white; }
     .packet { padding: 0; }
-    .page-sheet { break-after: page; }
-    .continuation { break-before: page; }
   }
 `;
 
@@ -173,17 +171,17 @@ export function buildPrintableHtml(state: DeskState): string {
   <style>${PRINT_STYLES}</style>
 </head>
 <body>
-  <article class="packet" data-testid="review-packet">
+  <article class="packet" data-testid="print-sheet">
     <header>
       <h1 class="wordmark">terikiki</h1>
       <p class="promise">Write on paper. Keep everything connected.</p>
-      <p class="sheet-kicker">Review packet · ${escapeHtml(title)}</p>
+      <p class="sheet-kicker">Print sheet · ${escapeHtml(title)}</p>
     </header>
     ${pageBlocks || '<p class="blank">No PDF pages on this desk.</p>'}
-    <section class="sheet continuation">
-      <h2>Continuation</h2>
+    <section class="sheet working">
+      <h2>Working space</h2>
       <p class="kicker">Loose leaves</p>
-      ${loose || '<p class="blank">No loose leaves — every note is hanging on a printed page.</p>'}
+      ${loose || '<p class="blank">No loose leaves — every note is hanging in a printed margin.</p>'}
       <h2>Thinking trail</h2>
       <ol class="trail">${trail || '<li>Empty trail.</li>'}</ol>
     </section>
@@ -196,8 +194,8 @@ function hangArticle(state: DeskState, card: MatrixCard): string {
   const marks = confirmedMarksFor(state, card.id)
     .map((m) => m.glyph)
     .join(' ');
-  const ai = card.kind === 'ai';
-  return `<article class="hang${ai ? ' ai' : ''}" data-card="${escapeHtml(card.id)}"><h3>${escapeHtml(labelForCard(card))}${marks ? ` <span class="marks">${escapeHtml(marks)}</span>` : ''}${ai ? ' <em class="voice-ai">(AI)</em>' : ''}</h3><p>${escapeHtml(excerptOf(card))}</p></article>`;
+  const voice = card.kind === 'ai' ? 'ai' : 'ink';
+  return `<article class="hang${voice === 'ai' ? ' ai' : ''}" data-voice="${voice}" data-card="${escapeHtml(card.id)}"><h3>${escapeHtml(labelForCard(card))}${marks ? ` <span class="marks">${escapeHtml(marks)}</span>` : ''} <em class="voice-${voice}">(${voice === 'ai' ? 'AI' : 'ink'})</em></h3><p>${escapeHtml(excerptOf(card))}</p></article>`;
 }
 
 function excerptOf(card: MatrixCard): string {
@@ -229,7 +227,16 @@ function escapeHtml(value: string): string {
     .replaceAll('"', '&quot;');
 }
 
-/** Print without window.open (avoids popup blockers). */
+/** Print the given iframe. Never window.open. */
+export function printIframe(iframe: HTMLIFrameElement | null): boolean {
+  const win = iframe?.contentWindow;
+  if (!win) return false;
+  win.focus();
+  win.print();
+  return true;
+}
+
+/** Hidden iframe print path (no popup). Prefer printing a visible preview iframe when one exists. */
 export function printHtml(html: string): boolean {
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
@@ -240,9 +247,8 @@ export function printHtml(html: string): boolean {
   iframe.style.right = '0';
   iframe.style.bottom = '0';
   document.body.appendChild(iframe);
-  const win = iframe.contentWindow;
   const doc = iframe.contentDocument;
-  if (!win || !doc) {
+  if (!doc) {
     iframe.remove();
     return false;
   }
@@ -250,8 +256,6 @@ export function printHtml(html: string): boolean {
   doc.write(html);
   doc.close();
   const cleanup = () => iframe.remove();
-  win.addEventListener('afterprint', cleanup);
-  win.focus();
-  win.print();
-  return true;
+  iframe.contentWindow?.addEventListener('afterprint', cleanup);
+  return printIframe(iframe);
 }

@@ -10,11 +10,13 @@ Vite 8 + React 19 + TypeScript + `pdfjs-dist`. Node `>=22.12.0`.
 
 ## Stage 4 (this cut)
 
-Printable review packet, thin thinking trail, and command-mark stubs. Stage 1–3 locks stay in force: handwriting primacy, Ask as a pulled tray, SelectionSet-only Ask context, pending matches never auto-pin, `FileBtn` a single label.
+Printable sheet, thin thinking trail, and command-mark stubs. Stage 1–3 locks stay in force: handwriting primacy, Ask as a pulled tray, SelectionSet-only Ask context, pending matches never auto-pin, `FileBtn` a single label.
 
-1. **Review packet** — **Print desk** opens a cream sheet, not a chat dump. Each printed page sits beside a handwritten margin; a continuation page holds loose leaves and the thinking trail. Send to printer uses print CSS. The wordmark stays serif italic; mark glyphs may use `--script`.
+**Stage 4 locks** (`src/export/lock.ts`, `src/trail/lock.ts`, `src/marks/lock.ts`):
+
+1. **One print sheet** — source excerpt + handwritten working margin on a single cream sheet. **Send to printer** prints the preview **iframe**, never `window.open`. AI vs student content is labeled **(AI)** / **(ink)** on the sheet.
 2. **Thinking trail** — append-only events keyed to card ids (`first_note`, `question`, `pdf_evidence`, `correction`, `ai_explanation`, `latest_understanding`). AI beats are labeled **AI**; student writing is **ink**. Lightweight history, not a VCS.
-3. **Command marks** — Detect → show for confirmation → Confirm or Dismiss. Vocabulary: `?` unresolved question, `*` important, box → study card, circle → verify equation, arrow → relationship/anchor, `R` review, `EXPLAIN` request explanation. Confirming never silent-fires Ask, pins, or study cards.
+3. **Command marks** — Detect → show for confirmation → Confirm or Dismiss only. Vocabulary: `?` unresolved question, `*` important, box → study card, circle → verify equation, arrow → relationship/anchor, `R` review, `EXPLAIN` request explanation. Confirming never silent-fires Ask, pins, or study cards.
 
 ## Demo
 
@@ -33,7 +35,7 @@ The desk boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) 
 2. **Detect marks**. The trail inbox lists proposals (`?`, box, `EXPLAIN`, …) with meanings. Nothing is committed yet.
 3. **Confirm** `?` on *Why beating?*. **Dismiss** or **Confirm** `EXPLAIN` on *Box the envelope*. Confirmed glyphs appear on the leaf in script; Ask does not open; no pin is written.
 4. Click the hanging leaf and its printed page. **Pull Ask**, ask a question, optionally **Pin answer on desk**. The trail shows student ink beats, then an **AI** explanation — separately labeled.
-5. **Print desk**. The overlay is the review packet: printed excerpt + handwritten margin, then a continuation page with loose leaves and the ordered trail. **Send to printer** if you want the system dialog; **Close** / Escape puts the packet away.
+5. **Print desk**. One sheet: printed excerpt + handwritten margin, with loose leaves and the ordered trail on the same sheet. **Send to printer** prints the iframe (no popup). Close / Escape puts it away.
 
 ### Stage 3 Ask (unchanged)
 
@@ -57,7 +59,7 @@ Pending slips stay **not pinned** until Accept / Correct / Pin to page / Pin to 
 | Stage 3 Ask lock (live chips, in-gathering cites, tucked overlay) | `src/ai/lock.ts` |
 | Command-mark detector + confirm lock | `src/marks/detectMarks.ts`, `src/marks/lock.ts` |
 | Thinking trail order + AI/ink lock | `src/trail/events.ts`, `src/trail/lock.ts` |
-| Printable review packet | `src/export/printSheet.ts` |
+| Stage 4 print lock (one sheet, iframe not popup, AI/ink labeled) | `src/export/lock.ts`, `src/export/printSheet.ts` |
 | pdf.js loader | `src/pdf/loadPdf.ts` |
 | Desk UI | `src/ui/*`, `src/styles/desk.css` |
 

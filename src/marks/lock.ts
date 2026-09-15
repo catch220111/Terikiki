@@ -12,6 +12,10 @@ export function confirmedMarks(marks: readonly CommandMark[]): CommandMark[] {
   return marks.filter((mark) => mark.status === 'confirmed');
 }
 
+export function detectorSilentConfirmed(marks: readonly CommandMark[]): string[] {
+  return marks.filter((mark) => mark.status !== 'detected').map((mark) => mark.id);
+}
+
 export function canTransitionMark(status: CommandMarkStatus, next: CommandMarkStatus): boolean {
   return status === 'detected' && (next === 'confirmed' || next === 'dismissed');
 }
