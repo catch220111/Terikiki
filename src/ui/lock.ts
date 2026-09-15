@@ -21,7 +21,7 @@ export const CARD_WIDTH_PX = {
   ai: 168,
 } as const;
 
-const CRAFT_CHROME = /Palatino|walnut|washi|--vermillion|#c23b22|#c4a35a|#1b1410|#f4ead4|#f3ead6|note-tape|--rot\b/;
+const CRAFT_CHROME = /Palatino|walnut|washi|--vermillion|#c23b22|#c4a35a|#1b1410|#f4ead4|#f3ead6|note-tape|--rot\b|rotate\(/;
 
 export function missingVlV1Tokens(css: string): string[] {
   return VL_V1_TOKENS.filter((token) => !css.includes(`${token}:`));
@@ -86,4 +86,13 @@ export function connectorStrokeOutsideBand(css: string): boolean {
   if (!mix?.[1]) return true;
   const pct = Number(mix[1]);
   return pct < 30 || pct > 40;
+}
+
+/** Lines appear for selection and hover only — not citation auto-drive. */
+export function connectorsAreSelectHoverOnly(connectorSrc: string): boolean {
+  return (
+    connectorSrc.includes('state.selection.cardIds') &&
+    connectorSrc.includes('state.hoverCardId') &&
+    !connectorSrc.includes('lastTurnCitedIds')
+  );
 }

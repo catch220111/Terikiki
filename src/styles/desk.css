@@ -182,7 +182,7 @@ img { max-width: 100%; display: block; }
   white-space: nowrap;
   font-weight: 600;
 }
-.chip {
+.chip, .cite {
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
@@ -194,10 +194,10 @@ img { max-width: 100%; display: block; }
   font-size: 0.74rem;
   white-space: nowrap;
 }
-.chip-pdf { box-shadow: inset 3px 0 0 var(--pdf); }
-.chip-note { box-shadow: inset 3px 0 0 var(--hand); }
-.chip-ai { box-shadow: inset 3px 0 0 var(--ai); }
-.chip:hover { border-color: var(--border); }
+.chip-pdf, .cite-pdf { box-shadow: inset 3px 0 0 var(--pdf); }
+.chip-note, .cite-note { box-shadow: inset 3px 0 0 var(--hand); }
+.chip-ai, .cite-ai { box-shadow: inset 3px 0 0 var(--ai); }
+.chip:hover, .cite:hover { border-color: color-mix(in srgb, var(--text) 22%, transparent); }
 .chip-jump {
   all: unset;
   cursor: pointer;
@@ -276,8 +276,7 @@ img { max-width: 100%; display: block; }
 .orientation-horizontal .cluster.loose .hang-axis { flex-direction: row; }
 
 .cluster-label {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
+  writing-mode: sideways-lr;
   font-size: 0.66rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -287,7 +286,6 @@ img { max-width: 100%; display: block; }
 }
 .cluster.loose .cluster-label {
   writing-mode: horizontal-tb;
-  transform: none;
 }
 
 .paper-card {
@@ -459,8 +457,8 @@ img { max-width: 100%; display: block; }
 .match-slip {
   background: #f7f7f8;
   border: 1px solid rgba(15, 15, 18, 0.08);
-  border-left: 3px solid var(--muted);
-  border-radius: 10px;
+  border-left: 3px solid var(--hand);
+  border-radius: var(--radius);
   padding: 0.55rem 0.65rem 0.5rem;
   color: #1d1d1f;
 }
@@ -621,19 +619,9 @@ img { max-width: 100%; display: block; }
 }
 .cite-row { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 .cite {
-  display: inline-block;
   margin: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 0.18rem 0.55rem;
-  font-size: 0.72rem;
   cursor: pointer;
 }
-.cite-pdf { box-shadow: inset 3px 0 0 var(--pdf); }
-.cite-note { box-shadow: inset 3px 0 0 var(--hand); }
-.cite-ai { box-shadow: inset 3px 0 0 var(--ai); }
 .cite-region {
   box-shadow: inset 3px 0 0 var(--accent);
 }

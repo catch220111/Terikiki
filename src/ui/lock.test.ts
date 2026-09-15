@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import printSrc from '../export/printSheet.ts?raw';
 import noteSrc from './NoteCard.tsx?raw';
+import connectorSrc from './ConnectorLayer.tsx?raw';
 import {
   askPanelIsFlatSheet,
   brandMarkIsCraftScript,
   CARD_WIDTH_PX,
   cardWidthPx,
   connectorStrokeOutsideBand,
+  connectorsAreSelectHoverOnly,
   craftChromeLeaks,
   handwritingHasSizePrimacy,
   missingVlV1Tokens,
@@ -35,8 +37,10 @@ describe('VL v1 chrome lock', () => {
     expect(css).toMatch(/--radius:\s*10px/);
   });
 
-  it('keeps Ask a flat Pull/Tuck surface and connectors in the opacity band', () => {
+  it('keeps Ask a flat Pull/Tuck surface and connectors select/hover only', () => {
     expect(askPanelIsFlatSheet(css)).toBe(true);
     expect(connectorStrokeOutsideBand(css)).toBe(false);
+    expect(connectorsAreSelectHoverOnly(connectorSrc)).toBe(true);
+    expect(css).not.toMatch(/stroke-dasharray/);
   });
 });
