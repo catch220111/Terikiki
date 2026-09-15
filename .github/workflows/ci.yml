@@ -18,3 +18,9 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Assert GitHub Pages project-site base
+        run: |
+          grep -q '/Terikiki/' dist/index.html
+          test -f dist/samples/lecture-coupled-notes.pdf
+          test -f dist/samples/note-beating.svg
+          test -f dist/samples/note-envelope.svg

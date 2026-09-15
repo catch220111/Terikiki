@@ -18,6 +18,16 @@ Printable sheet, thin thinking trail, and command-mark stubs. Stage 1–3 locks 
 2. **Thinking trail** — append-only events keyed to card ids (`first_note`, `question`, `pdf_evidence`, `correction`, `ai_explanation`, `latest_understanding`). AI beats are labeled **AI**; student writing is **ink**. Lightweight history, not a VCS.
 3. **Command marks** — Detect → show for confirmation → Confirm or Dismiss only (desk inbox). Vocabulary: `?` unresolved question, `*` important, box → study card, circle → verify equation, arrow → relationship/anchor, `R` review, `EXPLAIN` request explanation. Confirming never silent-fires Ask, pins, or study cards. Print shows confirmed glyphs only.
 
+## Live preview
+
+**https://catch220111.github.io/Terikiki/**
+
+Pushes to `main` run [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): `npm run build` (Vite `base` `/Terikiki/`, samples in `public/samples`) then `actions/deploy-pages`. PDF and note URLs use that base, so they stay same-origin on the project site.
+
+After merge: **Settings → Pages → Source: GitHub Actions**. Re-run the workflow if the first deploy ran before that was set.
+
+Local: `http://127.0.0.1:5174/Terikiki/` (`npm run dev`) or `http://127.0.0.1:4173/Terikiki/` (`npm run preview`).
+
 ## Demo
 
 ```bash
@@ -25,7 +35,7 @@ npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:5174`.
+Open `http://127.0.0.1:5174/Terikiki/`.
 
 The desk boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two loose handwritten notes. Match slips are **pending**. Marks wait for **Detect marks**.
 
