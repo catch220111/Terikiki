@@ -104,10 +104,15 @@ function DeskApp() {
       return;
     }
     let imported = 0;
-    for (const file of notes) {
-      const imageUrl = await fileToDataUrl(file);
-      ingestHandwriting(noteFromImage(file, imageUrl), state.pages, dispatch, matcher);
-      imported += 1;
+    try {
+      for (const file of notes) {
+        const imageUrl = await fileToDataUrl(file);
+        ingestHandwriting(noteFromImage(file, imageUrl), state.pages, dispatch, matcher);
+        imported += 1;
+      }
+    } catch (e) {
+      setStatus(e instanceof Error ? e.message : 'Could not read that note image.');
+      return;
     }
     if (imported > 0) {
       setStatus(

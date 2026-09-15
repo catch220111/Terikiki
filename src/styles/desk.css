@@ -99,7 +99,19 @@ img { max-width: 100%; display: block; }
   background: var(--paper);
   color: var(--desk);
 }
-.file-btn input { display: none; }
+.file-btn {
+  position: relative;
+  overflow: hidden;
+}
+.file-btn input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  font-size: 0;
+}
 
 .layer-toggles { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .layer-toggle {
@@ -457,11 +469,12 @@ img { max-width: 100%; display: block; }
   height: 100%;
   pointer-events: none;
   overflow: visible;
+  z-index: 5;
 }
 .connectors path {
   fill: none;
-  stroke: color-mix(in srgb, var(--thread) 48%, transparent);
-  stroke-width: 1.15;
+  stroke: color-mix(in srgb, var(--thread) 62%, transparent);
+  stroke-width: 1.35;
   stroke-linecap: round;
 }
 

@@ -34,7 +34,7 @@ export function TopRail({ state, dispatch, onImportPdf, onImportNotes, onDetectM
         <FileBtn label="Open PDF" accept="application/pdf" onFile={onImportPdf} />
         <FileBtn
           label="Import notes"
-          accept="image/*"
+          accept="image/*,image/svg+xml,.png,.jpg,.jpeg,.webp,.gif,.svg"
           multiple
           testId="import-notes"
           onFiles={onImportNotes}
