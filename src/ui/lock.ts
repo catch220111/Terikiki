@@ -1,7 +1,10 @@
 /**
- * VL v1 lock: named tokens + PDF-editor shell. Tokens and chrome only —
- * Stage 1–4 behavior stays. Walnut / cream / gold / vermillion craft desk
- * stays retired. Ask stays a Pull/Tuck overlay; the matrix stays the spatial center.
+ * VL v1 + v1.1 chrome lock. Tokens and shell only — Stage 1–4 behavior stays.
+ * Walnut / cream / gold / vermillion craft desk stays retired.
+ * Ask stays a Pull/Tuck overlay; the matrix stays the spatial center.
+ *
+ * v1 named tokens are the closed set below. `--stage` is the v1.1 page-paper
+ * role, not a v1 token.
  */
 export const VL_V1_TOKENS = [
   '--bg',
@@ -163,14 +166,46 @@ export function pageStripIsReadingChrome(stripSrc: string): boolean {
   );
 }
 
-/** Tool chrome stays --surface; the page stage uses a lighter --stage paper. */
+function ruleBodyContaining(css: string, className: string): string {
+  const match = css.match(new RegExp(`[^#{]*\\.${className}\\b[^{]*\\{([^}]+)\\}`));
+  return match?.[1] ?? '';
+}
+
+const TOOL_CHROME_SURFACES = [
+  'doc-toolbar',
+  'thumb-rail',
+  'zoom-fit-bar',
+  'trail-drawer',
+  'ask-panel',
+  'annotation-strip',
+] as const;
+
+/**
+ * VL v1.1 dual surface: toolbar / rails / inspectors use `--surface`.
+ * The page stage uses a lighter `--stage` paper. `--stage` is not a v1 token.
+ */
 export function dualSurfaceRoles(css: string): boolean {
-  return (
-    /--stage:\s*#/.test(css) &&
-    /matrix-viewport[\s\S]*var\(--stage\)/.test(css) &&
-    /doc-toolbar[\s\S]*var\(--surface\)/.test(css) &&
-    !/#f4ead4|#f3ead6|#1b1410/.test(css)
-  );
+  if ((VL_V1_TOKENS as readonly string[]).includes('--stage')) return false;
+  if (!/--stage:\s*#/.test(css) || /#f4ead4|#f3ead6|#1b1410/.test(css)) return false;
+  for (const name of TOOL_CHROME_SURFACES) {
+    if (!ruleBodyContaining(css, name).includes('var(--surface)')) return false;
+  }
+  return ruleBodyContaining(css, 'matrix-viewport').includes('var(--stage)');
+}
+
+/** VL v1.1 layout: thumbnail rail, zoom/fit bar, segmented strip, collapsed trail. */
+export function vlV11LayoutMissing(
+  css: string,
+  stripSrc: string,
+  traySrc: string,
+  shellSrc: string,
+): string[] {
+  const missing: string[] = [];
+  if (!css.includes('.thumb-rail') || !stripSrc.includes('thumb-rail')) missing.push('thumbnail-rail');
+  if (!css.includes('.zoom-fit-bar') || !stripSrc.includes('zoom-fit-bar')) missing.push('zoom-fit-bar');
+  if (!css.includes('.segmented') || !traySrc.includes('segmented')) missing.push('segmented-tool-strip');
+  if (!trailIsCollapsedInspector(css, shellSrc)) missing.push('collapsed-inspector');
+  return missing;
 }
 
 /** Trail/marks live in a tucked overlay drawer, not a permanent notes column. */

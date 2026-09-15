@@ -27,6 +27,8 @@ import {
   scriptUsedOutsideGlyphs,
   toolbarIsDocumentApp,
   trailIsCollapsedInspector,
+  vlV11LayoutMissing,
+  VL_V1_TOKENS,
 } from './lock.ts';
 
 const { readFileSync } = await import('fs');
@@ -36,7 +38,19 @@ const { fileURLToPath } = await import('url');
 const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../styles/desk.css'), 'utf8');
 
 describe('VL v1 chrome lock', () => {
-  it('declares the named token set and retires craft-desk shell tropes', () => {
+  it('keeps the closed VL v1 token set and retires craft-desk shell tropes', () => {
+    expect([...VL_V1_TOKENS]).toEqual([
+      '--bg',
+      '--surface',
+      '--border',
+      '--text',
+      '--muted',
+      '--accent',
+      '--hand',
+      '--ai',
+      '--pdf',
+      '--danger',
+    ]);
     expect(missingVlV1Tokens(css)).toEqual([]);
     expect(craftChromeLeaks(css, noteSrc, printSrc)).toEqual([]);
     expect(brandMarkIsCraftScript(css)).toBe(false);
@@ -63,10 +77,11 @@ describe('VL v1 chrome lock', () => {
     expect(css).not.toMatch(/stroke-dasharray/);
   });
 
-  it('stages a PDF-editor shell with VL v1.1 dual surface and document chrome', () => {
+  it('locks VL v1.1 dual surface and PDF-editor layout', () => {
     expect(toolbarIsDocumentApp(railSrc)).toBe(true);
     expect(pageStripIsReadingChrome(stripSrc)).toBe(true);
     expect(dualSurfaceRoles(css)).toBe(true);
+    expect(vlV11LayoutMissing(css, stripSrc, traySrc, shellSrc)).toEqual([]);
     expect(trailIsCollapsedInspector(css, shellSrc)).toBe(true);
     expect(pinChromeIsNotOnLeaves(noteSrc)).toBe(true);
     expect(pinDrivenByActiveTool(traySrc)).toBe(true);
