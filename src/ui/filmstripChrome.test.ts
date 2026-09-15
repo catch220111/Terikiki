@@ -3,6 +3,7 @@ import {
   createFilmstripIdle,
   FILMSTRIP_FADE_MS,
   FILMSTRIP_IDLE_MS,
+  filmstripChromeHonorsThesis,
   filmstripClassName,
   filmstripFadeIsSubtle,
   filmstripHighlightAnimates,
@@ -12,6 +13,12 @@ import {
   instantPageJump,
   subscribePrefersReducedMotion,
 } from './filmstripChrome.ts';
+import stripSrc from './PageStrip.tsx?raw';
+
+const { readFileSync } = await import('fs');
+const { dirname, join } = await import('path');
+const { fileURLToPath } = await import('url');
+const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../styles/desk.css'), 'utf8');
 
 describe('CLV filmstrip idle fade + reduced-motion', () => {
   afterEach(() => {
@@ -109,5 +116,23 @@ describe('CLV filmstrip idle fade + reduced-motion', () => {
     expect(seen).toEqual([false, true]);
     stop();
     globalThis.matchMedia = previous;
+  });
+
+  it('keeps the filmstrip the only saturated navigator; stage stays quiet paper', () => {
+    expect(filmstripChromeHonorsThesis(css, stripSrc)).toBe(true);
+    expect(css).toMatch(/\.page-thumb\.current[\s\S]{0,400}var\(--accent\)/);
+    expect(css).toMatch(/\.page-filmstrip\s*\{[^}]*var\(--surface\)/);
+    expect(css).not.toMatch(/\.page-filmstrip\s*\{[^}]*var\(--accent\)/);
+    expect(css).not.toMatch(/\.page-filmstrip[\s\S]{0,3200}var\(--hand\)/);
+    expect(css).toMatch(/\.matrix-viewport\s*\{[^}]*background:\s*var\(--stage\)/s);
+  });
+
+  it('reduced-motion keeps the strip visible and static with no highlight ease', () => {
+    expect(filmstripStaysVisible(true)).toBe(true);
+    expect(filmstripHighlightAnimates(true)).toBe(false);
+    expect(instantPageJump(true)).toBe(true);
+    expect(css).toMatch(/prefers-reduced-motion:\s*reduce\)[\s\S]*\.page-filmstrip[\s\S]*opacity:\s*1/);
+    expect(css).toMatch(/prefers-reduced-motion:\s*reduce\)[\s\S]*transition:\s*none/);
+    expect(css).toMatch(/\.page-filmstrip\.static[\s\S]*transition:\s*none/);
   });
 });

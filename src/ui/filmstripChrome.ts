@@ -140,3 +140,19 @@ export function subscribePrefersReducedMotion(onChange: (matches: boolean) => vo
   mq.addEventListener('change', onMq);
   return () => mq.removeEventListener('change', onMq);
 }
+
+/** James lane lock: --accent on current thumbs only; no --hand / SaaS fill on the strip. */
+export function filmstripChromeHonorsThesis(css: string, stripSrc: string): boolean {
+  const stripStart = css.indexOf('.page-filmstrip {');
+  const stripSlice = stripStart >= 0 ? css.slice(stripStart, stripStart + 3200) : '';
+  return (
+    /page-thumb\.current[\s\S]{0,400}var\(--accent\)/.test(stripSlice) &&
+    /\.page-filmstrip\s*\{[^}]*var\(--surface\)/.test(stripSlice) &&
+    !/\.page-filmstrip\s*\{[^}]*var\(--accent\)/.test(stripSlice) &&
+    !stripSlice.includes('var(--hand)') &&
+    !/linear-gradient|radial-gradient/.test(stripSlice) &&
+    stripSrc.includes('filmstripClassName') &&
+    stripSrc.includes('createFilmstripIdle') &&
+    !stripSrc.includes("type: 'select-card'")
+  );
+}

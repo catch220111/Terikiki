@@ -11,6 +11,7 @@ import clusterSrc from './PageCluster.tsx?raw';
 import cameraSrc from './cameraFit.ts?raw';
 import glideSrc from './cameraGlide.ts?raw';
 import chromeSrc from './filmstripChrome.ts?raw';
+import { filmstripChromeHonorsThesis } from './filmstripChrome.ts';
 import {
   askPanelIsFlatSheet,
   askRemainsMatrixOverlay,
@@ -121,6 +122,7 @@ describe('VL v1.1 implementable cut', () => {
     expect(filmstripIsBottomWayfinding(css, stripSrc)).toBe(true);
     expect(pageGlideIsEaseOut(glideSrc, viewportSrc)).toBe(true);
     expect(filmstripAutoHide(css, stripSrc, chromeSrc)).toBe(true);
+    expect(filmstripChromeHonorsThesis(css, stripSrc)).toBe(true);
     expect(reducedMotionReader(css, glideSrc, viewportSrc, chromeSrc, stripSrc)).toBe(true);
     expect(vlV12ChromiumReaderMissing(css, stripSrc, clusterSrc, viewportSrc, cameraSrc, glideSrc, chromeSrc)).toEqual([]);
     expect(handwritingHasSizePrimacy(css)).toBe(true);

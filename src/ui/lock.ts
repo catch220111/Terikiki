@@ -400,6 +400,7 @@ export function filmstripAutoHide(css: string, stripSrc: string, chromeSrc: stri
     stripSrc.includes('pointermove') &&
     stripSrc.includes('mousemove') &&
     stripSrc.includes('filmstripClassName') &&
+    chromeSrc.includes('filmstripChromeHonorsThesis') &&
     /opacity:\s*0/.test(body) &&
     /translateY\(8px\)/.test(body) &&
     css.includes('150ms') &&
