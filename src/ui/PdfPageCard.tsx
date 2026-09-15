@@ -1,7 +1,8 @@
 import { useRef, useState, type Dispatch, type PointerEvent as ReactPointerEvent } from 'react';
-import { clampRect, type Anchor, type PdfPageCard as PdfPage } from '../types/domain.ts';
+import { type Anchor, type NormalizedRect, type PdfPageCard as PdfPage } from '../types/domain.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { isCardVisible } from '../engine/selectors.ts';
+import { isTinyRegion, regionTarget } from '../engine/anchors.ts';
 import { isAdditiveClick } from './pointer.ts';
 
 interface Props {
@@ -16,9 +17,9 @@ export function PdfPageCard({ page, state, dispatch }: Props) {
   const visible = isCardVisible(state, page);
   const pinning = state.anchorDraft;
   const drawing = pinning?.mode === 'region' && pinning.pageIndex === page.pageIndex;
-  const imgRef = useRef<HTMLImageElement>(null);
-  const [draft, setDraft] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [draft, setDraft] = useState<NormalizedRect | null>(null);
   const origin = useRef<{ x: number; y: number } | null>(null);
+  const draftRef = useRef<NormalizedRect | null>(null);
 
   const regions = state.anchors.filter(
     (anchor): anchor is Anchor & { target: Extract<Anchor['target'], { kind: 'region' }> } =>
@@ -44,62 +45,68 @@ export function PdfPageCard({ page, state, dispatch }: Props) {
   function onDrawStart(e: ReactPointerEvent<HTMLDivElement>) {
     if (!drawing) return;
     e.stopPropagation();
+    e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     const p = toNorm(e);
     origin.current = p;
-    setDraft({ x: p.x, y: p.y, w: 0.02, h: 0.02 });
+    const next = { x: p.x, y: p.y, w: 0.02, h: 0.02 };
+    draftRef.current = next;
+    setDraft(next);
   }
 
   function onDrawMove(e: ReactPointerEvent<HTMLDivElement>) {
     if (!origin.current) return;
     const p = toNorm(e);
-    const x = Math.min(origin.current.x, p.x);
-    const y = Math.min(origin.current.y, p.y);
-    setDraft({ x, y, w: Math.abs(p.x - origin.current.x), h: Math.abs(p.y - origin.current.y) });
+    const next = {
+      x: Math.min(origin.current.x, p.x),
+      y: Math.min(origin.current.y, p.y),
+      w: Math.abs(p.x - origin.current.x),
+      h: Math.abs(p.y - origin.current.y),
+    };
+    draftRef.current = next;
+    setDraft(next);
   }
 
   function onDrawEnd() {
-    if (!drawing || !draft || !state.document || !pinning) {
-      origin.current = null;
-      return;
-    }
-    const rect = clampRect(draft);
-    const target = {
-      kind: 'region' as const,
-      documentId: state.document.id,
-      pageIndex: page.pageIndex,
-      rect,
-    };
+    const current = draftRef.current;
+    origin.current = null;
+    draftRef.current = null;
+    setDraft(null);
+    if (!drawing || !current || !state.document || !pinning) return;
+    if (isTinyRegion(current)) return;
+    const target = regionTarget(state.document.id, page.pageIndex, current);
     if (pinning.suggestionId) {
       dispatch({ type: 'correct-match', suggestionId: pinning.suggestionId, target });
     } else {
-      dispatch({ type: 'commit-anchor', cardId: pinning.noteId, target, source: 'manual' });
+      dispatch({ type: 'commit-manual-anchor', cardId: pinning.noteId, target });
     }
-    origin.current = null;
-    setDraft(null);
   }
 
   return (
-    <button
-      type="button"
+    <article
       data-card={page.id}
       className={`paper-card pdf ${selected ? 'selected' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        select(isAdditiveClick(e));
-      }}
       onPointerDown={(e) => e.stopPropagation()}
       onMouseEnter={() => dispatch({ type: 'set-hover', cardId: page.id })}
       onMouseLeave={() => dispatch({ type: 'set-hover', cardId: null })}
     >
       <div className="card-kicker">Printed · p{page.pageIndex + 1}</div>
       {visible ? (
-        <div style={{ position: 'relative' }}>
-          {page.imageUrl ? (
-            <img ref={imgRef} src={page.imageUrl} alt={page.title} draggable={false} />
-          ) : (
-            <div className="ghost">Rendering page…</div>
-          )}
+        <div className="pdf-figure">
+          <button
+            type="button"
+            className="pdf-face"
+            onClick={(e) => {
+              e.stopPropagation();
+              select(isAdditiveClick(e));
+            }}
+          >
+            {page.imageUrl ? (
+              <img src={page.imageUrl} alt={page.title} draggable={false} />
+            ) : (
+              <div className="ghost">Rendering page…</div>
+            )}
+          </button>
           {regions.map((anchor) => (
             <div
               key={anchor.id}
@@ -116,9 +123,11 @@ export function PdfPageCard({ page, state, dispatch }: Props) {
           {drawing && (
             <div
               className="draw-layer"
+              data-testid="region-draw-layer"
               onPointerDown={onDrawStart}
               onPointerMove={onDrawMove}
               onPointerUp={onDrawEnd}
+              onPointerCancel={onDrawEnd}
             >
               {draft && (
                 <div
@@ -135,11 +144,20 @@ export function PdfPageCard({ page, state, dispatch }: Props) {
           )}
         </div>
       ) : (
-        <div className="ghost">PDF layer off — position kept</div>
+        <button
+          type="button"
+          className="pdf-face"
+          onClick={(e) => {
+            e.stopPropagation();
+            select(isAdditiveClick(e));
+          }}
+        >
+          <div className="ghost">PDF layer off — position kept</div>
+        </button>
       )}
       <div className="card-kicker" style={{ marginTop: '0.4rem' }}>
         {page.title}
       </div>
-    </button>
+    </article>
   );
 }

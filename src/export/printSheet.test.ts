@@ -18,10 +18,9 @@ describe('buildPrintableHtml', () => {
     });
     state = deskReducer(state, { type: 'import-note', note });
     state = deskReducer(state, {
-      type: 'commit-anchor',
+      type: 'commit-manual-anchor',
       cardId: note.id,
       target: { kind: 'page', documentId: 'doc', pageIndex: 0 },
-      source: 'manual',
     });
     state = deskReducer(state, {
       type: 'propose-marks',

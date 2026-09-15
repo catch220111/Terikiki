@@ -1,5 +1,6 @@
 import {
   assertNever,
+  isPendingSuggestion,
   type AiCard,
   type AiTurn,
   type Anchor,
@@ -12,12 +13,14 @@ import {
   type MatrixOrientation,
   type NoteCard,
   type PdfPageCard,
+  type PendingMatchSuggestion,
   type SelectionSet,
   type StudyDocument,
   type ThinkingTrailEvent,
   DEFAULT_LAYER_VISIBILITY,
 } from '../types/domain.ts';
 import { createId, nowIso } from './ids.ts';
+import { describeTarget, hasMatchingAnchor } from './anchors.ts';
 
 export interface DeskState {
   document: StudyDocument | null;
@@ -78,8 +81,8 @@ export type DeskAction =
   | { type: 'begin-anchor'; noteId: string; mode: 'page' | 'region'; suggestionId?: string }
   | { type: 'set-anchor-page'; pageIndex: number }
   | { type: 'cancel-anchor' }
-  | { type: 'commit-anchor'; cardId: string; target: AnchorTarget; source: Anchor['source'] }
-  | { type: 'propose-matches'; suggestions: MatchSuggestion[] }
+  | { type: 'commit-manual-anchor'; cardId: string; target: AnchorTarget }
+  | { type: 'propose-matches'; suggestions: readonly MatchSuggestion[] }
   | { type: 'accept-match'; suggestionId: string }
   | { type: 'reject-match'; suggestionId: string }
   | { type: 'correct-match'; suggestionId: string; target: AnchorTarget }
@@ -102,8 +105,43 @@ function trailEvent(partial: Omit<ThinkingTrailEvent, 'id'>): ThinkingTrailEvent
   return { ...partial, id: createId('trail') };
 }
 
-function makeAnchor(cardId: string, target: AnchorTarget, source: Anchor['source']): Anchor {
-  return { id: createId('anchor'), cardId, target, source };
+function placeAnchor(state: DeskState, anchor: Anchor): DeskState {
+  if (hasMatchingAnchor(state.anchors, anchor.cardId, anchor.target)) {
+    return { ...state, anchorDraft: null };
+  }
+  const pageCard = state.pages.find((p) => p.pageIndex === anchor.target.pageIndex);
+  const evidence = describeTarget(anchor.target);
+  const kind = anchor.source === 'corrected-match' ? 'correction' : 'pdf_evidence';
+  return {
+    ...state,
+    anchors: [...state.anchors, anchor],
+    anchorDraft: null,
+    trail: [
+      ...state.trail,
+      trailEvent({
+        cardId: anchor.cardId,
+        at: nowIso(),
+        kind,
+        layerOrigin: 'student',
+        layerType: 'handwriting',
+        summary: `${cardTitle(state, anchor.cardId)} pinned to ${evidence}${pageCard ? ` (${pageCard.title})` : ''}`,
+        fromAi: false,
+      }),
+    ],
+  };
+}
+
+function manualAnchor(cardId: string, target: AnchorTarget): Anchor {
+  return { id: createId('anchor'), cardId, target, source: 'manual' };
+}
+
+function matchAnchor(
+  cardId: string,
+  target: AnchorTarget,
+  source: 'accepted-match' | 'corrected-match',
+  suggestionId: string,
+): Anchor {
+  return { id: createId('anchor'), cardId, target, source, suggestionId };
 }
 
 function cardTitle(state: DeskState, cardId: string): string {
@@ -209,7 +247,12 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
     case 'begin-anchor':
       return {
         ...state,
-        anchorDraft: { noteId: action.noteId, mode: action.mode, suggestionId: action.suggestionId },
+        anchorDraft: {
+          noteId: action.noteId,
+          mode: action.mode,
+          suggestionId: action.suggestionId,
+        },
+        focusCardId: action.noteId,
       };
     case 'set-anchor-page': {
       if (!state.anchorDraft) return state;
@@ -227,85 +270,58 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
           });
         }
         return deskReducer(state, {
-          type: 'commit-anchor',
+          type: 'commit-manual-anchor',
           cardId: state.anchorDraft.noteId,
           target,
-          source: 'manual',
         });
       }
       return { ...state, anchorDraft: { ...state.anchorDraft, pageIndex: action.pageIndex } };
     }
     case 'cancel-anchor':
       return { ...state, anchorDraft: null };
-    case 'commit-anchor': {
-      const anchor = makeAnchor(action.cardId, action.target, action.source);
-      const pageCard = state.pages.find((p) => p.pageIndex === action.target.pageIndex);
-      const evidence =
-        action.target.kind === 'region'
-          ? `region on p${action.target.pageIndex + 1}`
-          : `page ${action.target.pageIndex + 1}`;
-      const kind = action.source === 'corrected-match' ? 'correction' : 'pdf_evidence';
+    case 'commit-manual-anchor':
+      return placeAnchor(state, manualAnchor(action.cardId, action.target));
+    case 'propose-matches':
       return {
         ...state,
-        anchors: [...state.anchors, anchor],
-        anchorDraft: null,
-        trail: [
-          ...state.trail,
-          trailEvent({
-            cardId: action.cardId,
-            at: nowIso(),
-            kind,
-            layerOrigin: 'student',
-            layerType: 'handwriting',
-            summary: `${cardTitle(state, action.cardId)} pinned to ${evidence}${pageCard ? ` (${pageCard.title})` : ''}`,
-            fromAi: false,
-          }),
+        suggestions: [
+          ...state.suggestions,
+          ...action.suggestions.filter((suggestion): suggestion is PendingMatchSuggestion =>
+            isPendingSuggestion(suggestion),
+          ),
         ],
       };
-    }
-    case 'propose-matches':
-      return { ...state, suggestions: [...state.suggestions, ...action.suggestions] };
     case 'accept-match': {
       const suggestion = state.suggestions.find((s) => s.id === action.suggestionId);
-      if (!suggestion || suggestion.status !== 'pending') return state;
-      return deskReducer(
+      if (!suggestion || !isPendingSuggestion(suggestion)) return state;
+      return placeAnchor(
         {
           ...state,
           suggestions: state.suggestions.map((s) =>
-            s.id === action.suggestionId ? { ...s, status: 'accepted' } : s,
+            s.id === action.suggestionId ? { ...s, status: 'accepted' as const } : s,
           ),
         },
-        {
-          type: 'commit-anchor',
-          cardId: suggestion.noteId,
-          target: suggestion.target,
-          source: 'accepted-match',
-        },
+        matchAnchor(suggestion.noteId, suggestion.target, 'accepted-match', suggestion.id),
       );
     }
     case 'reject-match':
       return {
         ...state,
         suggestions: state.suggestions.map((s) =>
-          s.id === action.suggestionId && s.status === 'pending' ? { ...s, status: 'rejected' } : s,
+          s.id === action.suggestionId && s.status === 'pending' ? { ...s, status: 'rejected' as const } : s,
         ),
       };
     case 'correct-match': {
       const suggestion = state.suggestions.find((s) => s.id === action.suggestionId);
-      if (!suggestion || suggestion.status !== 'pending') return state;
-      return deskReducer(
+      if (!suggestion || !isPendingSuggestion(suggestion)) return state;
+      return placeAnchor(
         {
           ...state,
           suggestions: state.suggestions.map((s) =>
-            s.id === action.suggestionId ? { ...s, status: 'corrected', target: action.target } : s,
+            s.id === action.suggestionId ? { ...s, status: 'corrected' as const, target: action.target } : s,
           ),
         },
-        {
-          type: 'commit-anchor',
-          cardId: suggestion.noteId,
-          target: action.target,
-          source: 'corrected-match',
-        },
+        matchAnchor(suggestion.noteId, action.target, 'corrected-match', suggestion.id),
       );
     }
     case 'append-trail':
@@ -377,10 +393,9 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
       };
       if (action.attachToPageIndex === undefined || !state.document) return withCard;
       return deskReducer(withCard, {
-        type: 'commit-anchor',
+        type: 'commit-manual-anchor',
         cardId: action.card.id,
         target: { kind: 'page', documentId: state.document.id, pageIndex: action.attachToPageIndex },
-        source: 'manual',
       });
     }
     case 'open-ask':

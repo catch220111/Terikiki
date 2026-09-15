@@ -1,11 +1,13 @@
 import type { Dispatch } from 'react';
-import type { AiCard, NoteCard } from '../types/domain.ts';
+import type { AiCard, NoteCard as Note } from '../types/domain.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
-import { confirmedMarksFor, isCardVisible, pendingSuggestionsFor } from '../engine/selectors.ts';
+import { anchorsForCard, confirmedMarksFor, isCardVisible, pendingSuggestionsFor } from '../engine/selectors.ts';
+import { describeTarget } from '../engine/anchors.ts';
+import { formatConfidence } from '../matching/service.ts';
 import { isAdditiveClick } from './pointer.ts';
 
 interface NoteProps {
-  note: NoteCard;
+  note: Note;
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
 }
@@ -16,19 +18,32 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
   const visible = isCardVisible(state, note);
   const pending = pendingSuggestionsFor(state, note.id);
   const marks = confirmedMarksFor(state, note.id);
-  const drafting = state.anchorDraft?.noteId === note.id;
+  const pins = anchorsForCard(state, note.id);
+  const drafting = state.anchorDraft?.noteId === note.id ? state.anchorDraft : null;
+  const correctingId = drafting?.suggestionId;
+
+  function beginPin(mode: 'page' | 'region', suggestionId?: string) {
+    dispatch({
+      type: 'begin-anchor',
+      noteId: note.id,
+      mode,
+      suggestionId,
+    });
+  }
 
   return (
-    <div
+    <article
       data-card={note.id}
+      data-testid={`note-card-${note.id}`}
       className={`paper-card note ${selected ? 'selected' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
       onMouseEnter={() => dispatch({ type: 'set-hover', cardId: note.id })}
       onMouseLeave={() => dispatch({ type: 'set-hover', cardId: null })}
       onPointerDown={(e) => e.stopPropagation()}
     >
+      <div className="note-tape" aria-hidden="true" />
       <button
         type="button"
-        style={{ all: 'unset', display: 'block', cursor: 'pointer', width: '100%' }}
+        className="note-face"
         onClick={(e) => dispatch({ type: 'select-card', cardId: note.id, additive: isAdditiveClick(e) })}
       >
         <div className="card-kicker">Handwriting</div>
@@ -37,7 +52,8 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
         ) : (
           <div className="ghost">Handwriting layer off</div>
         )}
-        <strong>{note.title}</strong>
+        <strong className="note-title">{note.title}</strong>
+        {note.caption && <div className="note-caption">{note.caption}</div>}
         <div className="note-marks">
           {marks.map((mark) => (
             <span key={mark.id} className="glyph">
@@ -46,11 +62,24 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
           ))}
         </div>
       </button>
+      {pins.length > 0 && (
+        <div className="note-pins">
+          Pinned to {pins.map((pin) => describeTarget(pin.target)).join(' · ')}
+        </div>
+      )}
       <div className="pin-actions">
-        <button type="button" onClick={() => dispatch({ type: 'begin-anchor', noteId: note.id, mode: 'page' })}>
+        <button
+          type="button"
+          data-testid="pin-to-page"
+          onClick={() => beginPin('page', correctingId)}
+        >
           Pin to page
         </button>
-        <button type="button" onClick={() => dispatch({ type: 'begin-anchor', noteId: note.id, mode: 'region' })}>
+        <button
+          type="button"
+          data-testid="pin-to-region"
+          onClick={() => beginPin('region', correctingId)}
+        >
           Pin to region
         </button>
         {drafting && (
@@ -59,45 +88,55 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
           </button>
         )}
       </div>
+      {drafting && (
+        <p className="note-draft-hint">
+          {drafting.suggestionId ? 'Correcting a stub guess — ' : 'Manual pin — '}
+          {drafting.mode === 'page'
+            ? 'click a printed page.'
+            : drafting.pageIndex === undefined
+              ? 'click a page, then drag a rectangle.'
+              : 'drag a rectangle on that page.'}
+        </p>
+      )}
       {pending.length > 0 && (
         <div className="match-list">
           {pending.map((suggestion) => (
-            <div key={suggestion.id} className="match-item">
-              <div>
-                Suggested {suggestion.target.kind} p{suggestion.target.pageIndex + 1} ·{' '}
-                {Math.round(suggestion.confidence * 100)}%
+            <aside key={suggestion.id} className="match-slip" data-testid="match-slip">
+              <div className="match-kicker">
+                Stub suggestion · not pinned · {formatConfidence(suggestion.confidence)}
               </div>
-              <div>{suggestion.rationale}</div>
+              <p className="match-target">{describeTarget(suggestion.target)}</p>
+              <p>{suggestion.rationale}</p>
               <menu>
-                <button type="button" onClick={() => dispatch({ type: 'accept-match', suggestionId: suggestion.id })}>
+                <button
+                  type="button"
+                  className="accept"
+                  data-testid="match-accept"
+                  onClick={() => dispatch({ type: 'accept-match', suggestionId: suggestion.id })}
+                >
                   Accept
                 </button>
                 <button
                   type="button"
                   className="reject"
+                  data-testid="match-reject"
                   onClick={() => dispatch({ type: 'reject-match', suggestionId: suggestion.id })}
                 >
                   Reject
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    dispatch({
-                      type: 'begin-anchor',
-                      noteId: note.id,
-                      mode: suggestion.target.kind === 'region' ? 'region' : 'page',
-                      suggestionId: suggestion.id,
-                    })
-                  }
+                  data-testid="match-correct"
+                  onClick={() => beginPin(suggestion.target.kind === 'region' ? 'region' : 'page', suggestion.id)}
                 >
                   Correct
                 </button>
               </menu>
-            </div>
+            </aside>
           ))}
         </div>
       )}
-    </div>
+    </article>
   );
 }
 

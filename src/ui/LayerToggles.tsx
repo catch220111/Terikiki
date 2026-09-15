@@ -32,21 +32,32 @@ export function FileBtn({
   label,
   accept,
   onFile,
+  onFiles,
+  multiple,
+  testId,
 }: {
   label: string;
   accept: string;
-  onFile: (file: File) => void;
+  onFile?: (file: File) => void;
+  onFiles?: (files: readonly File[]) => void;
+  multiple?: boolean;
+  testId?: string;
 }) {
   return (
-    <label className="file-btn">
+    <label className="file-btn" data-testid={testId}>
+      {label}
       {label}
       <input
         type="file"
         accept={accept}
+        multiple={multiple}
+        data-testid={testId ? `${testId}-input` : undefined}
         onChange={(e) => {
-          const file = e.target.files?.[0];
+          const files = e.target.files ? [...e.target.files] : [];
           e.target.value = '';
-          if (file) onFile(file);
+          if (files.length === 0) return;
+          if (onFiles) onFiles(files);
+          else if (onFile && files[0]) onFile(files[0]);
         }}
       />
     </label>

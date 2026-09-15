@@ -6,14 +6,17 @@ Terikiki is a paper-first study tool. Handwriting is the primary intellectual ar
 
 ## Stack
 
-Vite 8 + React 19 + TypeScript + `pdfjs-dist`. Node `>=22.12.0`. Kept as-is; the restart is the client engine and UI, not a framework swap.
+Vite 8 + React 19 + TypeScript + `pdfjs-dist`. Node `>=22.12.0`.
 
-## Boarding MVP (this cut)
+## Stage 2 (this cut)
 
-1. **Matrix shell** — pan/zoom desk, PDF pages via pdf.js, H/V orientation, origin/type layer toggles (hide without deleting position), click-to-gather / Shift-add chip tray, thin `--thread` connectors only on select/hover.
-2. **Note import** — image notes dominate the matrix; manual pin to a page or a rectangle; matcher that may only **suggest / accept / reject / correct**. Nothing auto-commits.
-3. **Selection-aware Ask** — a pulled paper tray (not a chat rail). Pluggable `AiClient` (mock, no API keys). The tutor sees only the explicit selection and cites those cards.
-4. **Printable desk** + thin **thinking trail** + handwritten command-mark stubs (`?`, `*`, box, circle, arrow, `R`, `EXPLAIN`) with detect → confirm.
+Note import, manual anchors, and the MatchingService UX boundary. Stage 1 visual language is unchanged: walnut / cream / vermillion / washi, handwriting primacy, Ask as a pulled tray, serif italic wordmark, solid `--thread` connectors on select/hover.
+
+1. **Import notes** — photographed or scanned images land as loose leaves on the perpendicular axis. Drop images onto the desk or use **Import notes** (multiple files). They can pin to pages; they do not auto-attach.
+2. **Manual anchoring** — pin a leaf to a whole PDF page, or drag a rectangle on a page. One note may hold several pins (one leaf, many threads). Connectors stay contextual (select/hover) and solid.
+3. **MatchingService** — stub matcher may only *suggest* (`PendingMatchSuggestion`, status `pending`). Pending slips **do not enter the anchor graph**. **Accept** or **Correct** commits a match-sourced pin; **Reject** writes nothing; **Pin to page / Pin to region** writes a `manual` anchor with no suggestion required. The stub is honest: wording overlap, not a vision model.
+
+Stage 1 matrix shell, Ask tray, trail, and print remain available; they are not the Stage 2 focus.
 
 ## Demo
 
@@ -24,17 +27,18 @@ npm run dev
 
 Open `http://127.0.0.1:5174`.
 
-The desk boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two loose handwritten notes. Suggestions and detected marks appear **pending**.
+The desk boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two loose handwritten notes. Match slips are **pending**.
 
-Walkthrough:
+### Import → suggest → accept / reject / correct → manual pin
 
-1. Pan the walnut desk; Ctrl/Cmd+wheel to zoom. Flip **PDF ↓ / PDF →**.
-2. Toggle layers. Hidden layers keep their slot.
-3. Click a page and a note — the washi-tape **AI context** tray is the only prompt context.
-4. On a loose note, **Accept** a match, or **Reject**, or **Correct** (then click a page / drag a region). Or **Pin to page / Pin to region** yourself.
-5. **Pull Ask** from the tray (or Escape / **Tuck** to put it away). Citation stamps jump back to those cards. Optionally pin the answer onto the desk (labeled AI, quieter than handwriting).
-6. **Detect marks**, then Confirm / Dismiss. Confirmed glyphs sit on the note.
-7. **Print desk** for one printable sheet (pages, pinned notes, trail, confirmed marks).
+1. Pan the walnut desk; Ctrl/Cmd+wheel to zoom. Flip **PDF ↓ notes →**.
+2. On *Why beating?*, read the washi **Stub suggestion** slip (confidence + rationale). **Accept** — the leaf hangs off that page and a thread appears on select/hover.
+3. On *Box the envelope*, **Reject** a slip. The note stays a loose leaf; no anchor is written.
+4. Import another scan: **Import notes** (or drop a PNG/JPG onto the desk). A new leaf appears with pending suggestions only.
+5. **Correct** a stub guess, then click the printed page that is actually right (or **Pin to region**, click a page, drag a rectangle). Source is `corrected-match`.
+6. **Pin to page** / **Pin to region** without a suggestion — manual pins. A note can take a second pin; it still hangs on the first.
+
+Ask, Detect marks, and Print desk still work from Stage 1 if you wander there.
 
 ## Architecture
 
@@ -42,7 +46,10 @@ Walkthrough:
 | --- | --- |
 | Domain types (cards, layers, anchors, selection, matching, trail, marks) | `src/types/domain.ts` |
 | Pure desk reducer | `src/engine/deskState.ts` |
-| Stub matcher (never commits) | `src/matching/stubMatcher.ts` |
+| Anchor helpers (page/region, duplicates, hang slot) | `src/engine/anchors.ts` |
+| MatchingService boundary + stub | `src/matching/service.ts`, `src/matching/stubMatcher.ts` |
+| Stage 2 anchor lock (pending off-graph) | `src/matching/lock.ts` |
+| Note image import | `src/notes/importImage.ts` |
 | Pluggable AI | `src/ai/client.ts`, `src/ai/mockClient.ts` |
 | Command-mark detector (proposals only) | `src/marks/detectMarks.ts` |
 | Printable export | `src/export/printSheet.ts` |

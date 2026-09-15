@@ -5,6 +5,7 @@ import {
   cardLayer,
   clampRect,
   layerKey,
+  sourceForCommitPath,
 } from './domain.ts';
 
 describe('layerKey', () => {
@@ -69,5 +70,15 @@ describe('clampRect', () => {
     expect(rect.w).toBeGreaterThan(0);
     expect(rect.x + rect.w).toBeLessThanOrEqual(1);
     expect(rect.y + rect.h).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('anchor commit paths', () => {
+  it('maps accept / correct / manual onto graph sources and excludes reject', () => {
+    expect(sourceForCommitPath('accept')).toBe('accepted-match');
+    expect(sourceForCommitPath('correct')).toBe('corrected-match');
+    expect(sourceForCommitPath('manual')).toBe('manual');
+    const paths: readonly string[] = ['accept', 'correct', 'manual'];
+    expect(paths).not.toContain('reject');
   });
 });

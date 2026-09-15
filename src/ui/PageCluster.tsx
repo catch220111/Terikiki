@@ -1,7 +1,7 @@
 import type { Dispatch } from 'react';
 import { assertNever, type AiCard, type NoteCard as Note } from '../types/domain.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
-import { cardsAnchoredToPage, looseCards } from '../engine/selectors.ts';
+import { cardsHangingOnPage, looseCards } from '../engine/selectors.ts';
 import { PdfPageCard } from './PdfPageCard.tsx';
 import { AiCardView, NoteCard } from './NoteCard.tsx';
 
@@ -40,7 +40,7 @@ export function PageCluster({ state, dispatch }: Props) {
       )}
       <div className="page-axis">
         {state.pages.map((page) => {
-          const hanging = cardsAnchoredToPage(state, page.pageIndex).filter(
+          const hanging = cardsHangingOnPage(state, page.pageIndex).filter(
             (card): card is Note | AiCard => card.kind === 'note' || card.kind === 'ai',
           );
           return (

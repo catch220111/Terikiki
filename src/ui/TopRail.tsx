@@ -6,12 +6,12 @@ interface Props {
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
   onImportPdf: (file: File) => void;
-  onImportNote: (file: File) => void;
+  onImportNotes: (files: readonly File[]) => void;
   onDetectMarks: () => void;
   onExport: () => void;
 }
 
-export function TopRail({ state, dispatch, onImportPdf, onImportNote, onDetectMarks, onExport }: Props) {
+export function TopRail({ state, dispatch, onImportPdf, onImportNotes, onDetectMarks, onExport }: Props) {
   const vertical = state.orientation === 'vertical';
   return (
     <header className="top-rail">
@@ -32,7 +32,13 @@ export function TopRail({ state, dispatch, onImportPdf, onImportNote, onDetectMa
       </div>
       <div className="rail-files">
         <FileBtn label="Open PDF" accept="application/pdf" onFile={onImportPdf} />
-        <FileBtn label="Import note" accept="image/*" onFile={onImportNote} />
+        <FileBtn
+          label="Import notes"
+          accept="image/*,image/svg+xml,.png,.jpg,.jpeg,.webp,.gif,.svg"
+          multiple
+          testId="import-notes"
+          onFiles={onImportNotes}
+        />
         <InkBtn onClick={onDetectMarks}>Detect marks</InkBtn>
         <InkBtn onClick={onExport}>Print desk</InkBtn>
         <InkBtn active={state.askOpen} onClick={() => dispatch({ type: 'open-ask', open: !state.askOpen })}>

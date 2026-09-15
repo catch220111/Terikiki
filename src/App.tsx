@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { DeskProvider, useDesk } from './engine/DeskContext.tsx';
 import { makeNote, makePdfPage } from './engine/selectors.ts';
 import { loadPdfFromFile, loadPdfFromUrl, type LoadedPdf } from './pdf/loadPdf.ts';
-import { suggestMatches } from './matching/stubMatcher.ts';
 import { detectMarks } from './marks/detectMarks.ts';
 import { buildPrintableHtml, printHtml } from './export/printSheet.ts';
 import { SAMPLE_DOCUMENT_ID, SAMPLE_DOCUMENT_TITLE, SAMPLE_NOTES, SAMPLE_PDF_URL } from './demo/bootstrap.ts';
 import { DeskShell } from './ui/DeskShell.tsx';
 import type { DeskAction } from './engine/deskState.ts';
+import type { MatchingService } from './matching/service.ts';
+import type { NoteCard, PdfPageCard } from './types/domain.ts';
+import { fileToDataUrl, noteFromImage, partitionDroppedFiles } from './notes/importImage.ts';
 
 async function ingestPdf(pdf: LoadedPdf, dispatch: (action: DeskAction) => void, sourceUrl: string) {
   dispatch({
@@ -40,8 +42,19 @@ async function ingestPdf(pdf: LoadedPdf, dispatch: (action: DeskAction) => void,
   }
 }
 
+function ingestHandwriting(
+  note: NoteCard,
+  pages: readonly PdfPageCard[],
+  dispatch: (action: DeskAction) => void,
+  matcher: MatchingService,
+) {
+  dispatch({ type: 'import-note', note });
+  dispatch({ type: 'propose-matches', suggestions: [...matcher.suggestForNote(note, pages)] });
+  dispatch({ type: 'propose-marks', marks: detectMarks(note) });
+}
+
 function DeskApp() {
-  const { state, dispatch, ai } = useDesk();
+  const { state, dispatch, ai, matcher } = useDesk();
   const [status, setStatus] = useState('Laying out the sample lecture…');
 
   useEffect(() => {
@@ -51,7 +64,7 @@ function DeskApp() {
         const pdf = await loadPdfFromUrl(SAMPLE_PDF_URL, SAMPLE_DOCUMENT_ID, SAMPLE_DOCUMENT_TITLE);
         if (cancelled) return;
         await ingestPdf(pdf, dispatch, SAMPLE_PDF_URL);
-        if (!cancelled) setStatus(`${SAMPLE_DOCUMENT_TITLE} · pan the desk · Shift-select · accept matches yourself`);
+        if (!cancelled) setStatus(`${SAMPLE_DOCUMENT_TITLE} · import a scan, then accept / reject / correct`);
       } catch (e) {
         if (!cancelled) setStatus(e instanceof Error ? e.message : 'Failed to load sample PDF');
       }
@@ -73,11 +86,9 @@ function DeskApp() {
         imageUrl: sample.url,
         inkHints: sample.inkHints,
       });
-      dispatch({ type: 'import-note', note });
-      dispatch({ type: 'propose-matches', suggestions: suggestMatches(note, state.pages) });
-      dispatch({ type: 'propose-marks', marks: detectMarks(note) });
+      ingestHandwriting(note, state.pages, dispatch, matcher);
     }
-  }, [dispatch, state.document, state.notes.length, state.pages]);
+  }, [dispatch, matcher, state.document, state.notes.length, state.pages]);
 
   async function onImportPdf(file: File) {
     setStatus(`Opening ${file.name}…`);
@@ -86,18 +97,30 @@ function DeskApp() {
     setStatus(`${pdf.title} on the desk`);
   }
 
-  async function onImportNote(file: File) {
-    const imageUrl = await fileToDataUrl(file);
-    const note = makeNote({
-      title: file.name.replace(/\.[^.]+$/, ''),
-      caption: file.name,
-      filename: file.name,
-      imageUrl,
-    });
-    dispatch({ type: 'import-note', note });
-    dispatch({ type: 'propose-matches', suggestions: suggestMatches(note, state.pages) });
-    dispatch({ type: 'propose-marks', marks: detectMarks(note) });
-    setStatus(`Imported handwriting “${note.title}” — suggestions stay pending until you accept.`);
+  async function onImportNotes(files: readonly File[]) {
+    const { notes, pdfs, skipped } = partitionDroppedFiles(files);
+    if (pdfs[0] && notes.length === 0) {
+      await onImportPdf(pdfs[0]);
+      return;
+    }
+    let imported = 0;
+    try {
+      for (const file of notes) {
+        const imageUrl = await fileToDataUrl(file);
+        ingestHandwriting(noteFromImage(file, imageUrl), state.pages, dispatch, matcher);
+        imported += 1;
+      }
+    } catch (e) {
+      setStatus(e instanceof Error ? e.message : 'Could not read that note image.');
+      return;
+    }
+    if (imported > 0) {
+      setStatus(
+        `Imported ${imported} handwritten ${imported === 1 ? 'leaf' : 'leaves'} — stub suggestions stay pending until you accept, reject, or correct.`,
+      );
+    } else if (skipped.length > 0 && !pdfs[0]) {
+      setStatus('Drop a photographed or scanned note image (PNG, JPG, WebP, SVG).');
+    }
   }
 
   function onDetectMarks() {
@@ -128,21 +151,12 @@ function DeskApp() {
       dispatch={dispatch}
       ai={ai}
       onImportPdf={onImportPdf}
-      onImportNote={onImportNote}
+      onImportNotes={onImportNotes}
       onDetectMarks={onDetectMarks}
       onExport={onExport}
       status={status}
     />
   );
-}
-
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Could not read note image'));
-    reader.onload = () => resolve(String(reader.result));
-    reader.readAsDataURL(file);
-  });
 }
 
 export function App() {

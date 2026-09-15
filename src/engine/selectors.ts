@@ -1,6 +1,7 @@
-import type { AiCard, MatrixCard, NoteCard, PdfPageCard } from '../types/domain.ts';
-import { cardLayer, isLayerVisible } from '../types/domain.ts';
+import type { AiCard, MatrixCard, NoteCard, PdfPageCard, PendingMatchSuggestion } from '../types/domain.ts';
+import { cardLayer, isLayerVisible, isPendingSuggestion } from '../types/domain.ts';
 import { createId, nowIso } from './ids.ts';
+import { primaryHangPageIndex } from './anchors.ts';
 import type { DeskState } from './deskState.ts';
 
 export function allCards(state: DeskState): MatrixCard[] {
@@ -32,8 +33,10 @@ export function selectedCards(state: DeskState): MatrixCard[] {
     .filter((card): card is MatrixCard => card !== undefined);
 }
 
-export function pendingSuggestionsFor(state: DeskState, noteId: string) {
-  return state.suggestions.filter((s) => s.noteId === noteId && s.status === 'pending');
+export function pendingSuggestionsFor(state: DeskState, noteId: string): PendingMatchSuggestion[] {
+  return state.suggestions.filter(
+    (s): s is PendingMatchSuggestion => s.noteId === noteId && isPendingSuggestion(s),
+  );
 }
 
 export function confirmedMarksFor(state: DeskState, noteId: string) {
@@ -53,6 +56,15 @@ export function cardsAnchoredToPage(state: DeskState, pageIndex: number): Matrix
     state.anchors.filter((a) => a.target.pageIndex === pageIndex).map((a) => a.cardId),
   );
   return allCards(state).filter((card) => ids.has(card.id));
+}
+
+/** One leaf per card — hang on the oldest pin, even if more threads exist. */
+export function cardsHangingOnPage(state: DeskState, pageIndex: number): MatrixCard[] {
+  const hangingIds = new Set<string>();
+  for (const card of [...state.notes, ...state.aiCards]) {
+    if (primaryHangPageIndex(state.anchors, card.id) === pageIndex) hangingIds.add(card.id);
+  }
+  return allCards(state).filter((card) => hangingIds.has(card.id));
 }
 
 export function looseCards(state: DeskState): Array<NoteCard | AiCard> {

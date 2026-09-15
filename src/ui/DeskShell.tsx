@@ -12,7 +12,7 @@ interface Props {
   dispatch: Dispatch<DeskAction>;
   ai: AiClient;
   onImportPdf: (file: File) => void;
-  onImportNote: (file: File) => void;
+  onImportNotes: (files: readonly File[]) => void;
   onDetectMarks: () => void;
   onExport: () => void;
   status: string;
@@ -23,7 +23,7 @@ export function DeskShell({
   dispatch,
   ai,
   onImportPdf,
-  onImportNote,
+  onImportNotes,
   onDetectMarks,
   onExport,
   status,
@@ -47,13 +47,13 @@ export function DeskShell({
         state={state}
         dispatch={dispatch}
         onImportPdf={onImportPdf}
-        onImportNote={onImportNote}
+        onImportNotes={onImportNotes}
         onDetectMarks={onDetectMarks}
         onExport={onExport}
       />
       <TrailStrip state={state} dispatch={dispatch} />
       <SelectionTray state={state} dispatch={dispatch} />
-      <MatrixViewport state={state} dispatch={dispatch} />
+      <MatrixViewport state={state} dispatch={dispatch} onImportNotes={onImportNotes} />
       <AskPanel state={state} dispatch={dispatch} ai={ai} />
       <div className="status-bar">{status}</div>
     </div>

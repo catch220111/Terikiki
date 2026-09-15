@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { deskReducer, initialDeskState } from './deskState.ts';
-import { labelForCard, looseCards, makeNote, makePdfPage } from './selectors.ts';
+import { cardsHangingOnPage, labelForCard, looseCards, makeNote, makePdfPage } from './selectors.ts';
 
 describe('selectors', () => {
   it('treats unanchored notes as loose leaves', () => {
@@ -14,11 +14,36 @@ describe('selectors', () => {
     expect(looseCards(state).map((c) => c.id)).toEqual([note.id]);
     expect(labelForCard(state.pages[0]!)).toBe('PDF p1');
     state = deskReducer(state, {
-      type: 'commit-anchor',
+      type: 'commit-manual-anchor',
       cardId: note.id,
       target: { kind: 'page', documentId: 'doc', pageIndex: 0 },
-      source: 'manual',
     });
+    expect(looseCards(state)).toEqual([]);
+  });
+
+  it('hangs a multi-target note once, on the oldest pin', () => {
+    let state = deskReducer(initialDeskState, {
+      type: 'hydrate-document',
+      document: { id: 'doc', title: 'L', sourceUrl: '/x.pdf', pageCount: 2 },
+      pages: [
+        makePdfPage({ documentId: 'doc', pageIndex: 0, title: 'Setup', excerpt: 'oscillator' }),
+        makePdfPage({ documentId: 'doc', pageIndex: 1, title: 'Beating', excerpt: 'envelope' }),
+      ],
+    });
+    const leaf = makeNote({ title: 'Why beating?', caption: '', filename: 'n.svg', imageUrl: '' });
+    state = deskReducer(state, { type: 'import-note', note: leaf });
+    state = deskReducer(state, {
+      type: 'commit-manual-anchor',
+      cardId: leaf.id,
+      target: { kind: 'page', documentId: 'doc', pageIndex: 1 },
+    });
+    state = deskReducer(state, {
+      type: 'commit-manual-anchor',
+      cardId: leaf.id,
+      target: { kind: 'page', documentId: 'doc', pageIndex: 0 },
+    });
+    expect(cardsHangingOnPage(state, 1).map((c) => c.id)).toEqual([leaf.id]);
+    expect(cardsHangingOnPage(state, 0)).toEqual([]);
     expect(looseCards(state)).toEqual([]);
   });
 });
