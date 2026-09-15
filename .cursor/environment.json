@@ -4,8 +4,8 @@
   "terminals": [
     {
       "name": "dev",
-      "command": "npm run dev",
-      "description": "Vite dev server for the Terikiki web app (http://127.0.0.1:5174)."
+      "command": "npx vite",
+      "description": "Vite dev server (http://127.0.0.1:5174)."
     }
   ],
   "ports": [
