@@ -1,0 +1,17 @@
+{
+  "name": "Terikiki",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "npm run dev",
+      "description": "Vite dev server for the Terikiki web app (http://127.0.0.1:5174)."
+    }
+  ],
+  "ports": [
+    {
+      "name": "vite dev server",
+      "port": 5174
+    }
+  ]
+}
