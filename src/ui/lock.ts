@@ -4,7 +4,8 @@
  *
  * - Keep v1 tokens; no craft regress.
  * - Dual surface: tool chrome vs light page paper (`--stage`, not a v1 token).
- * - Thumbnail rail, compact zoom/fit bar, segmented annotation strip.
+ * - Thumbnail rail, compact zoom/fit bar (Fit width / Fit page), segmented annotation strip.
+ * - Pan on the strip; Detect / Print / Ask with annotation tools; quieter file actions.
  * - Trail as collapsed inspector drawer. Ask stays Pull/Tuck flat sheet.
  * - Handwriting size primacy unchanged.
  */
@@ -139,18 +140,20 @@ export function connectorsAreSelectHoverOnly(connectorSrc: string): boolean {
   );
 }
 
-/** Document toolbar groups files, view, and actions — not a marketing masthead. */
+/** Document toolbar groups quieter files, view, and Trail — not a marketing masthead. */
 export function toolbarIsDocumentApp(railSrc: string): boolean {
   return (
     railSrc.includes('doc-toolbar') &&
     railSrc.includes('tool-group') &&
     railSrc.includes('Open PDF') &&
     railSrc.includes('Import notes') &&
-    railSrc.includes('Detect marks') &&
-    railSrc.includes('Print') &&
-    railSrc.includes('Pull Ask') &&
+    railSrc.includes('quiet') &&
     railSrc.includes('LayerToggles') &&
     railSrc.includes('set-orientation') &&
+    railSrc.includes('Trail') &&
+    !railSrc.includes('Detect marks') &&
+    !railSrc.includes('Print') &&
+    !railSrc.includes('Pull Ask') &&
     !railSrc.includes('brand-promise')
   );
 }
@@ -195,14 +198,17 @@ export function dualSurfaceRoles(css: string): boolean {
   return ruleBodyContaining(css, 'matrix-viewport').includes('var(--stage)');
 }
 
-/** Compact zoom/fit bar: − / % / + / Fit only — no page-count chrome. */
+/** Compact zoom/fit bar: − / % / + / Fit width / Fit page — no page-count chrome. */
 export function zoomFitBarIsCompact(css: string, stripSrc: string): boolean {
   const body = ruleBodyContaining(css, 'zoom-fit-bar');
   const min = body.match(/min-height:\s*(\d+)px/);
   const max = body.match(/max-height:\s*(\d+)px/);
   return (
     stripSrc.includes('data-testid="zoom-fit-bar"') &&
-    stripSrc.includes('Fit') &&
+    stripSrc.includes('Fit width') &&
+    stripSrc.includes('Fit page') &&
+    stripSrc.includes('zoom-fit-width') &&
+    stripSrc.includes('zoom-fit-page') &&
     !stripSrc.includes('page-strip-count') &&
     Boolean(min && Number(min[1]) <= 32) &&
     Boolean(max && Number(max[1]) <= 32)
@@ -274,5 +280,35 @@ export function engThinReviewMissing(
   if (!pinChromeIsNotOnLeaves(noteSrc)) missing.push('pin-form-on-leaves');
   if (!pinDrivenByActiveTool(traySrc, shellSrc)) missing.push('pin-via-active-tool');
   if (css.includes('.pin-actions') || css.includes('note-draft-hint')) missing.push('leaf-pin-css');
+  return missing;
+}
+
+/** Galvez/James: Pan on the strip, Fit width + Fit page, Detect/Print/Ask with tools, quieter files. */
+export function galvezJamesMissing(
+  traySrc: string,
+  railSrc: string,
+  stripSrc: string,
+  viewportSrc: string,
+  css: string,
+): string[] {
+  const missing: string[] = [];
+  if (!traySrc.includes("'pan'") || !traySrc.includes('Pan') || !traySrc.includes('tool-pan')) {
+    missing.push('pan-on-segmented-strip');
+  }
+  if (
+    !viewportSrc.includes("tool === 'pan'") ||
+    !viewportSrc.includes('capture: true') ||
+    !viewportSrc.includes('data-testid="matrix-viewport"')
+  ) {
+    missing.push('pan-capture-on-matrix');
+  }
+  if (!zoomFitBarIsCompact(css, stripSrc)) missing.push('fit-width-and-fit-page');
+  if (!traySrc.includes('Detect marks') || !traySrc.includes('Print') || !traySrc.includes('Pull Ask')) {
+    missing.push('detect-print-ask-on-strip');
+  }
+  if (railSrc.includes('Detect marks') || railSrc.includes('Pull Ask') || railSrc.includes('print-desk')) {
+    missing.push('actions-still-on-rail');
+  }
+  if (!railSrc.includes('quiet') || !css.includes('.file-btn.quiet')) missing.push('quiet-file-actions');
   return missing;
 }

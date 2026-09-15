@@ -155,6 +155,19 @@ img { max-width: 100%; display: block; }
   border-color: var(--text);
 }
 .file-btn input { display: none; }
+.file-btn.quiet {
+  background: transparent;
+  color: var(--muted);
+  border-color: transparent;
+  font-size: 0.66rem;
+  font-weight: 500;
+  padding: 0.16rem 0.38rem;
+}
+.file-btn.quiet:hover {
+  color: var(--text);
+  border-color: var(--border);
+  background: transparent;
+}
 
 .layer-toggles { display: flex; flex-wrap: nowrap; gap: 0.22rem; }
 .layer-toggle {
@@ -303,7 +316,13 @@ img { max-width: 100%; display: block; }
   line-height: 1;
 }
 .chip-drop:hover { color: var(--danger); }
-.selection-tray .ink-btn { margin-left: auto; }
+.strip-actions {
+  margin-left: auto;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.28rem;
+  align-items: center;
+}
 
 .matrix-viewport {
   grid-area: matrix;
@@ -316,6 +335,10 @@ img { max-width: 100%; display: block; }
 }
 .matrix-viewport.dragging { cursor: grabbing; }
 .matrix-viewport.pinning { cursor: crosshair; }
+.matrix-viewport.pan-tool,
+.matrix-viewport.pan-tool [data-card] { cursor: grab; }
+.matrix-viewport.pan-tool.dragging,
+.matrix-viewport.pan-tool.dragging [data-card] { cursor: grabbing; }
 .matrix-viewport.drop-over {
   box-shadow: inset 0 0 0 2px var(--accent);
 }

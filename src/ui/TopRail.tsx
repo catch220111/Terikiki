@@ -9,8 +9,6 @@ interface Props {
   onToggleInspector: () => void;
   onImportPdf: (file: File) => void;
   onImportNotes: (files: readonly File[]) => void;
-  onDetectMarks: () => void;
-  onExport: () => void;
 }
 
 export function TopRail({
@@ -20,8 +18,6 @@ export function TopRail({
   onToggleInspector,
   onImportPdf,
   onImportNotes,
-  onDetectMarks,
-  onExport,
 }: Props) {
   const vertical = state.orientation === 'vertical';
   const pageCount = state.document?.pageCount ?? state.pages.length;
@@ -40,8 +36,9 @@ export function TopRail({
         </span>
       </div>
       <div className="tool-group" role="group" aria-label="Files">
-        <FileBtn label="Open PDF" accept="application/pdf" onFile={onImportPdf} />
+        <FileBtn quiet label="Open PDF" accept="application/pdf" onFile={onImportPdf} />
         <FileBtn
+          quiet
           label="Import notes"
           accept="image/*,image/svg+xml,.png,.jpg,.jpeg,.webp,.gif,.svg"
           multiple
@@ -62,18 +59,9 @@ export function TopRail({
         <span className="tool-kicker">Layers</span>
         <LayerToggles layers={state.layers} dispatch={dispatch} />
       </div>
-      <div className="tool-group tool-group-end" role="group" aria-label="Actions">
-        <InkBtn testId="detect-marks" onClick={onDetectMarks}>
-          Detect marks
-        </InkBtn>
-        <InkBtn testId="print-desk" onClick={onExport}>
-          Print
-        </InkBtn>
+      <div className="tool-group tool-group-end" role="group" aria-label="Inspector">
         <InkBtn active={inspectorOpen} testId="toggle-trail" onClick={onToggleInspector}>
           Trail
-        </InkBtn>
-        <InkBtn active={state.askOpen} onClick={() => dispatch({ type: 'open-ask', open: !state.askOpen })}>
-          {state.askOpen ? 'Tuck Ask' : 'Pull Ask'}
         </InkBtn>
       </div>
     </header>

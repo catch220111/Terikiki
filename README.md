@@ -17,15 +17,16 @@ VL v1.1 implementable cut (`src/ui/lock.ts`):
 - Keep v1 tokens; no craft regress.
 - Dual surface: tool chrome vs **light page paper** (`--stage`).
 - Thumbnail rail
-- **Compact** zoom/fit bar (− / % / + / Fit)
-- **Segmented annotation strip**
+- **Compact** zoom/fit bar (− / % / + / Fit width / Fit page)
+- **Segmented annotation strip** (Pan / Select / Pin page / Pin region, plus Detect / Print / Ask)
 - Trail as **collapsed inspector drawer**
 - Ask stays Pull/Tuck flat sheet
 - Handwriting size primacy unchanged
+- File actions (Open PDF / Import) stay quieter on the document toolbar
 
 Soft residuals stay backlog. Stage 1–4 behavior locks hold.
 
-The chrome is tool-forward: dense grouped toolbar (Open PDF / Import notes / layers / orientation / Print / Detect marks / Trail / Pull Ask). Manual pin is the active tool on the segmented strip, not a form on every note. The matrix stays the spatial center.
+The chrome is tool-forward: quieter file controls on the document toolbar; Detect / Print / Ask sit with the annotation tools. Manual pin is the active tool on the segmented strip, not a form on every note. Pan is a capture-phase tool so cards do not steal the drag. The matrix stays the spatial center.
 
 ## Stage 4
 
@@ -56,7 +57,7 @@ npm run dev
 
 Open `http://127.0.0.1:5174/Terikiki/`.
 
-The editor boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two unpinned handwritten notes. The toolbar shows the document title; the left thumbnail rail lists p1–p3. Match slips are **pending**. Marks wait for **Detect marks** (Trail opens as a drawer). Click a page thumb to jump in the matrix (that does not gather Ask). Pin with **Pin page** / **Pin region** in the segmented strip after selecting a note — not with per-card pin buttons.
+The editor boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two unpinned handwritten notes. The toolbar shows the document title; the left thumbnail rail lists p1–p3. Match slips are **pending**. Marks wait for **Detect marks** on the annotation strip (Trail opens as a drawer). Click a page thumb to jump in the matrix (that does not gather Ask). **Pan** drags the matrix including over cards. Pin with **Pin page** / **Pin region** in the segmented strip after selecting a note — not with per-card pin buttons. **Fit width** / **Fit page** live on the zoom bar.
 
 ### Print desk / trail / detect → confirm
 

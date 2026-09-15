@@ -6,6 +6,7 @@ import railSrc from './TopRail.tsx?raw';
 import stripSrc from './PageStrip.tsx?raw';
 import traySrc from './SelectionTray.tsx?raw';
 import shellSrc from './DeskShell.tsx?raw';
+import viewportSrc from './MatrixViewport.tsx?raw';
 import {
   askPanelIsFlatSheet,
   askRemainsMatrixOverlay,
@@ -30,6 +31,7 @@ import {
   vlV11LayoutMissing,
   zoomFitBarIsCompact,
   engThinReviewMissing,
+  galvezJamesMissing,
   VL_V1_TOKENS,
 } from './lock.ts';
 
@@ -92,6 +94,7 @@ describe('VL v1.1 implementable cut', () => {
     expect(pinChromeIsNotOnLeaves(noteSrc)).toBe(true);
     expect(pinDrivenByActiveTool(traySrc, shellSrc)).toBe(true);
     expect(engThinReviewMissing(noteSrc, traySrc, shellSrc, css)).toEqual([]);
+    expect(galvezJamesMissing(traySrc, railSrc, stripSrc, viewportSrc, css)).toEqual([]);
     expect(css).toMatch(/\.thumb-rail/);
     expect(css).toMatch(/\.zoom-fit-bar/);
     expect(css).toMatch(/\.segmented/);

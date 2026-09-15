@@ -1,5 +1,6 @@
 import type { Dispatch } from 'react';
-import { INITIAL_CAMERA, type DeskAction, type DeskState } from '../engine/deskState.ts';
+import type { DeskAction, DeskState } from '../engine/deskState.ts';
+import { fitPageCamera, fitWidthCamera, matrixViewportSize } from './cameraFit.ts';
 
 interface Props {
   state: DeskState;
@@ -70,10 +71,21 @@ export function ZoomFitBar({ state, dispatch }: Props) {
       <button
         type="button"
         className="ink-btn"
-        data-testid="zoom-fit"
-        onClick={() => dispatch({ type: 'set-camera', camera: { ...INITIAL_CAMERA } })}
+        data-testid="zoom-fit-width"
+        onClick={() => dispatch({ type: 'set-camera', camera: fitWidthCamera(matrixViewportSize().width) })}
       >
-        Fit
+        Fit width
+      </button>
+      <button
+        type="button"
+        className="ink-btn"
+        data-testid="zoom-fit-page"
+        onClick={() => {
+          const view = matrixViewportSize();
+          dispatch({ type: 'set-camera', camera: fitPageCamera(view.width, view.height) });
+        }}
+      >
+        Fit page
       </button>
     </div>
   );

@@ -93,7 +93,7 @@ export function DeskShell({
 
   function chooseTool(next: ViewerTool) {
     setTool(next);
-    if (next === 'select') dispatch({ type: 'cancel-anchor' });
+    if (!pinModeForTool(next)) dispatch({ type: 'cancel-anchor' });
   }
 
   function armPin(noteId: string, mode: 'page' | 'region', suggestionId?: string) {
@@ -115,16 +115,22 @@ export function DeskShell({
         onToggleInspector={() => setInspectorOpen((open) => !open)}
         onImportPdf={onImportPdf}
         onImportNotes={onImportNotes}
+      />
+      <SelectionTray
+        state={state}
+        dispatch={dispatch}
+        tool={tool}
+        onChooseTool={chooseTool}
         onDetectMarks={detectMarks}
         onExport={onExport}
       />
-      <SelectionTray state={state} dispatch={dispatch} tool={tool} onChooseTool={chooseTool} />
       <ThumbnailRail state={state} dispatch={dispatch} />
       <MatrixViewport
         state={state}
         dispatch={dispatch}
         onImportNotes={onImportNotes}
         onArmPin={armPin}
+        tool={tool}
         toolHint={state.anchorDraft ? null : pinToolHint(tool, Boolean(selectedNoteId(state)))}
       />
       <ZoomFitBar state={state} dispatch={dispatch} />

@@ -2,22 +2,32 @@ import type { Dispatch } from 'react';
 import { chipKindClass, chipKindVoice } from '../ai/context.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { cardById, labelForCard } from '../engine/selectors.ts';
-import { pinModeForTool, type ViewerTool } from './viewerTool.ts';
+import { toolTitle, type ViewerTool } from './viewerTool.ts';
 
 interface Props {
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
   tool: ViewerTool;
   onChooseTool: (tool: ViewerTool) => void;
+  onDetectMarks: () => void;
+  onExport: () => void;
 }
 
 const TOOLS: readonly { id: ViewerTool; label: string; testId: string }[] = [
+  { id: 'pan', label: 'Pan', testId: 'tool-pan' },
   { id: 'select', label: 'Select', testId: 'tool-select' },
   { id: 'pin-page', label: 'Pin page', testId: 'pin-to-page' },
   { id: 'pin-region', label: 'Pin region', testId: 'pin-to-region' },
 ];
 
-export function SelectionTray({ state, dispatch, tool, onChooseTool }: Props) {
+export function SelectionTray({
+  state,
+  dispatch,
+  tool,
+  onChooseTool,
+  onDetectMarks,
+  onExport,
+}: Props) {
   const empty = state.selection.cardIds.length === 0;
   return (
     <div
@@ -32,11 +42,7 @@ export function SelectionTray({ state, dispatch, tool, onChooseTool }: Props) {
             className={tool === item.id ? 'on' : ''}
             data-testid={item.testId}
             aria-pressed={tool === item.id}
-            title={
-              item.id === 'select'
-                ? 'Select pages and notes for Ask'
-                : `Pin the selected note — ${pinModeForTool(item.id) === 'region' ? 'drag a region' : 'click a page'}`
-            }
+            title={toolTitle(item.id)}
             onClick={() => onChooseTool(item.id)}
           >
             {item.label}
@@ -64,14 +70,22 @@ export function SelectionTray({ state, dispatch, tool, onChooseTool }: Props) {
           })}
         </>
       )}
-      <button
-        type="button"
-        className="ink-btn"
-        data-testid="pull-ask"
-        onClick={() => dispatch({ type: 'open-ask', open: !state.askOpen })}
-      >
-        {state.askOpen ? 'Tuck Ask' : 'Pull Ask'}
-      </button>
+      <div className="strip-actions">
+        <button type="button" className="ink-btn" data-testid="detect-marks" onClick={onDetectMarks}>
+          Detect marks
+        </button>
+        <button type="button" className="ink-btn" data-testid="print-desk" onClick={onExport}>
+          Print
+        </button>
+        <button
+          type="button"
+          className="ink-btn"
+          data-testid="pull-ask"
+          onClick={() => dispatch({ type: 'open-ask', open: !state.askOpen })}
+        >
+          {state.askOpen ? 'Tuck Ask' : 'Pull Ask'}
+        </button>
+      </div>
     </div>
   );
 }

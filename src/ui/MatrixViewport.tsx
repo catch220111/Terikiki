@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState, type Dispatch, type DragEvent
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { ConnectorLayer } from './ConnectorLayer.tsx';
 import { PageCluster } from './PageCluster.tsx';
+import type { ViewerTool } from './viewerTool.ts';
 
 interface Props {
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
   onImportNotes: (files: readonly File[]) => void;
   onArmPin: (noteId: string, mode: 'page' | 'region', suggestionId?: string) => void;
+  tool: ViewerTool;
   toolHint: string | null;
 }
 
@@ -15,9 +17,11 @@ function isInteractive(target: EventTarget | null): boolean {
   return target instanceof Element && Boolean(target.closest('button, input, textarea, label, [data-card]'));
 }
 
-export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, toolHint }: Props) {
+export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool, toolHint }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const cameraRef = useRef(state.camera);
+  cameraRef.current = state.camera;
   const [surface, setSurface] = useState<HTMLDivElement | null>(null);
   const [drag, setDrag] = useState<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const [dropOver, setDropOver] = useState(false);
@@ -61,7 +65,29 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, toolH
     return () => el.removeEventListener('wheel', onWheel);
   }, [onWheel]);
 
+  const pinning = Boolean(state.anchorDraft);
+  const panTool = tool === 'pan' && !pinning;
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport || !panTool) return;
+    const target: HTMLDivElement = viewport;
+    function onPanDown(e: PointerEvent) {
+      if (e.button !== 0) return;
+      if (!(e.target instanceof Element)) return;
+      if (e.target.closest('button, input, textarea, label')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      target.setPointerCapture(e.pointerId);
+      const camera = cameraRef.current;
+      setDrag({ x: e.clientX, y: e.clientY, panX: camera.x, panY: camera.y });
+    }
+    target.addEventListener('pointerdown', onPanDown, { capture: true });
+    return () => target.removeEventListener('pointerdown', onPanDown, { capture: true });
+  }, [panTool]);
+
   function onPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
+    if (panTool) return;
     if (e.button !== 0 || isInteractive(e.target)) return;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     setDrag({ x: e.clientX, y: e.clientY, panX: state.camera.x, panY: state.camera.y });
@@ -82,8 +108,6 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, toolH
   function onPointerUp() {
     setDrag(null);
   }
-
-  const pinning = Boolean(state.anchorDraft);
 
   function onDragOver(e: DragEvent<HTMLDivElement>) {
     if (![...e.dataTransfer.types].includes('Files')) return;
@@ -107,7 +131,8 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, toolH
   return (
     <div
       ref={viewportRef}
-      className={`matrix-viewport ${drag ? 'dragging' : ''} ${pinning ? 'pinning' : ''} ${dropOver ? 'drop-over' : ''}`}
+      data-testid="matrix-viewport"
+      className={`matrix-viewport ${drag ? 'dragging' : ''} ${pinning ? 'pinning' : ''} ${panTool ? 'pan-tool' : ''} ${dropOver ? 'drop-over' : ''}`}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -116,6 +141,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, toolH
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       onClick={(e) => {
+        if (panTool) return;
         if (!isInteractive(e.target) && !state.anchorDraft) dispatch({ type: 'clear-selection' });
       }}
     >
