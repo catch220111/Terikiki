@@ -89,6 +89,11 @@ describe('Ask context', () => {
     expect(snapshots[1]?.pins).toHaveLength(1);
     expect(snapshots[1]?.pins[0]?.kind).toBe('region');
     expect(citationsFromSnapshots(snapshots).some((c) => c.kind === 'region')).toBe(true);
+
+    state = deskReducer(state, { type: 'remove-from-selection', cardId: note.id });
+    expect(snapshotsFromSelection(state).map((s) => s.id)).toEqual([state.pages[1]!.id]);
+    state = deskReducer(state, { type: 'select-card', cardId: note.id, additive: true });
+    expect(snapshotsFromSelection(state).map((s) => s.id)).toEqual([state.pages[1]!.id, note.id]);
   });
 
   it('treats cited cards as visual links only while Ask is pulled', () => {
