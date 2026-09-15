@@ -13,7 +13,7 @@ import {
   subscribePrefersReducedMotion,
 } from './filmstripChrome.ts';
 
-describe('James filmstrip idle fade + reduced-motion', () => {
+describe('CLV filmstrip idle fade + reduced-motion', () => {
   afterEach(() => {
     vi.useRealTimers();
   });

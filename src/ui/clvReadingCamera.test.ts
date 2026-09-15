@@ -20,7 +20,7 @@ const { dirname, join } = await import('path');
 const { fileURLToPath } = await import('url');
 const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../styles/desk.css'), 'utf8');
 
-/** CLV lane lock: reading-column default camera + filmstrip→glide. James owns fade/reduced-motion. */
+/** CLV lane lock: reading-column default camera + filmstrip→glide (+ fade/reduced-motion owned in filmstripChrome). */
 
 describe('CLV reading-column camera', () => {
   it('frames the PDF column centered, not a scattered card canvas', () => {

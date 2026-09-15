@@ -1,5 +1,5 @@
 /**
- * James lane — filmstrip idle fade + prefers-reduced-motion.
+ * CLV lane — filmstrip idle fade + prefers-reduced-motion (role reallocation).
  * Valentina thesis: the filmstrip is the only saturated navigator; the page
  * stage stays anonymous and quiet; handwriting is the only warm accent; no SaaS chrome.
  */
