@@ -43,14 +43,16 @@ function hydrated() {
 }
 
 describe('deskReducer', () => {
-  it('Shift-style additive select builds an explicit selection set', () => {
+  it('clicking another card gathers it instead of replacing the set', () => {
     let state = hydrated();
     const a = state.pages[0]!.id;
     const b = state.pages[1]!.id;
     state = deskReducer(state, { type: 'select-card', cardId: a, additive: false });
-    state = deskReducer(state, { type: 'select-card', cardId: b, additive: true });
+    state = deskReducer(state, { type: 'select-card', cardId: b, additive: false });
     expect(state.selection.cardIds).toEqual([a, b]);
     expect(selectedCards(state).map((c) => c.id)).toEqual([a, b]);
+    state = deskReducer(state, { type: 'select-card', cardId: a, additive: true });
+    expect(state.selection.cardIds).toEqual([b]);
   });
 
   it('hides a layer without deleting cards', () => {

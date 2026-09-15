@@ -85,7 +85,7 @@ export function AskPanel({ state, dispatch, ai }: Props) {
         <h2>Ask only what you gathered</h2>
         {gathered.length === 0 ? (
           <p className="ask-empty">
-            Shift-select pages and notes. The tutor is blind to everything else — no silent corpus search.
+            Shift-select or click pages and notes. The tutor is blind to everything else — no silent corpus search.
           </p>
         ) : (
           <p className="ask-empty">{gathered.length} card(s) in context. Citations will jump back to those cards.</p>

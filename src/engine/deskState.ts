@@ -91,12 +91,11 @@ export type DeskAction =
   | { type: 'pin-ai-card'; card: AiCard; attachToPageIndex?: number }
   | { type: 'open-ask'; open: boolean };
 
-function toggleSelection(current: readonly string[], cardId: string, additive: boolean): string[] {
-  if (additive) {
-    return current.includes(cardId) ? current.filter((id) => id !== cardId) : [...current, cardId];
-  }
-  if (current.length === 1 && current[0] === cardId) return [];
-  return [cardId];
+function toggleSelection(current: readonly string[], cardId: string, _additive: boolean): string[] {
+  // Desk gathering: click adds or removes a card; empty-desk click clears (handled elsewhere).
+  // Shift/Ctrl/Cmd are also additive in the UI; they share this toggle.
+  void _additive;
+  return current.includes(cardId) ? current.filter((id) => id !== cardId) : [...current, cardId];
 }
 
 function trailEvent(partial: Omit<ThinkingTrailEvent, 'id'>): ThinkingTrailEvent {
