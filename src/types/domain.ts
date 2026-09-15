@@ -235,6 +235,27 @@ export const COMMAND_MARK_GLYPH: Record<CommandMarkKind, string> = {
   explain: 'EXPLAIN',
 };
 
+/** Student-facing meaning. Confirming records the mark; it never silent-fires the implied action. */
+export const COMMAND_MARK_MEANING: Record<CommandMarkKind, string> = {
+  question: 'Unresolved question',
+  star: 'Important',
+  box: 'Box → study card',
+  circle: 'Circle → verify equation',
+  arrow: 'Arrow → relationship / anchor',
+  recall: 'Review',
+  explain: 'Request explanation',
+};
+
+export const COMMAND_MARK_IF_CONFIRMED: Record<CommandMarkKind, string> = {
+  question: 'Stay an open question — Ask does not fire.',
+  star: 'Flag as important — nothing else is created.',
+  box: 'Remember as a study-card mark — no card is minted.',
+  circle: 'Mark to verify — no solver runs.',
+  arrow: 'Propose a relationship — no pin is written.',
+  recall: 'Mark for review — this is not a revision history.',
+  explain: 'Record the request — the tutor stays quiet until you Ask.',
+};
+
 export const LAYER_TOGGLE_SPEC: readonly {
   origin: LayerOrigin;
   type: LayerType;

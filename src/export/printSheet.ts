@@ -1,6 +1,121 @@
 import { cardLayer, isLayerVisible } from '../types/domain.ts';
-import { allCards, labelForCard } from '../engine/selectors.ts';
+import { allCards, confirmedMarksFor, labelForCard, looseCards } from '../engine/selectors.ts';
+import { orderedTrail, trailKindLabel, trailVoice } from '../trail/events.ts';
 import type { DeskState } from '../engine/deskState.ts';
+import type { MatrixCard } from '../types/domain.ts';
+
+const PRINT_STYLES = `
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: Palatino, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    color: #1a1714;
+    background: #f4ead4;
+    margin: 0;
+  }
+  .packet { padding: 28px 32px 48px; }
+  .wordmark {
+    font-family: Palatino, "Iowan Old Style", Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.85rem;
+    letter-spacing: 0.01em;
+    margin: 0;
+    color: #1a1714;
+  }
+  .promise {
+    margin: 0.15rem 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8a6a28;
+  }
+  .sheet-kicker {
+    margin: 0.85rem 0 0;
+    font-size: 0.82rem;
+    color: #6b655c;
+  }
+  .sheet {
+    margin-top: 1.6rem;
+    padding-top: 1.1rem;
+    border-top: 1px dashed #cbbfa8;
+    break-inside: avoid;
+  }
+  .page-sheet { break-after: page; page-break-after: always; }
+  .continuation { break-before: page; page-break-before: always; }
+  h2 {
+    font-size: 1.05rem;
+    margin: 0 0 0.85rem;
+    font-weight: 600;
+  }
+  .spread {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(12rem, 0.85fr);
+    gap: 1.1rem;
+    align-items: start;
+  }
+  .printed {
+    background: #efe6d2;
+    border: 1px solid #d7cbb3;
+    padding: 0.7rem 0.75rem 0.85rem;
+  }
+  .printed img {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    background: #fffdf6;
+    border: 1px solid #cbbfa8;
+  }
+  .printed .excerpt {
+    margin: 0.65rem 0 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+  .kicker {
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7a6a55;
+    margin: 0 0 0.4rem;
+  }
+  .margin {
+    min-height: 12rem;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.45), transparent 24%),
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(90,70,40,0.14) 28px),
+      #f7f1e4;
+    border-left: 3px solid #27563b;
+    padding: 0.75rem 0.8rem 1rem;
+  }
+  .hang {
+    margin: 0 0 0.95rem;
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+  .hang h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+  .hang p { margin: 0.3rem 0 0; font-style: italic; font-size: 0.88rem; color: #5c4c3c; }
+  .hang.ai { border-left: 2px solid #24356b; padding-left: 0.55rem; opacity: 0.9; }
+  .hang.ai h3 { font-size: 0.88rem; }
+  .marks { color: #c23b22; font-family: "Segoe Script", "Bradley Hand", "Apple Chancery", cursive; font-style: normal; }
+  .blank { color: #8a7b66; font-style: italic; font-size: 0.9rem; }
+  .trail { font-size: 0.92rem; padding-left: 1.15rem; }
+  .trail li { margin: 0.35rem 0; }
+  time { color: #6b655c; font-size: 0.78rem; }
+  .voice-ink { color: #27563b; font-style: italic; }
+  .voice-ai { color: #24356b; font-style: italic; }
+  @media print {
+    body { background: white; }
+    .packet { padding: 0; }
+    .page-sheet { break-after: page; }
+    .continuation { break-before: page; }
+  }
+`;
 
 export function buildPrintableHtml(state: DeskState): string {
   const title = state.document?.title ?? 'Untitled desk';
@@ -9,29 +124,44 @@ export function buildPrintableHtml(state: DeskState): string {
       const hanging = state.anchors
         .filter((a) => a.target.pageIndex === page.pageIndex)
         .map((a) => allCards(state).find((c) => c.id === a.cardId))
-        .filter((c) => c !== undefined)
+        .filter((c): c is MatrixCard => c !== undefined)
+        .filter((c, index, list) => list.findIndex((other) => other.id === c.id) === index)
         .filter((c) => {
           const layer = cardLayer(c);
           return isLayerVisible(state.layers, layer.origin, layer.type);
         });
-      const notes = hanging
-        .map((card) => {
-          const marks = state.marks
-            .filter((m) => m.noteId === card.id && m.status === 'confirmed')
-            .map((m) => m.glyph)
-            .join(' ');
-          return `<article class="hang"><h3>${escapeHtml(labelForCard(card))}${marks ? ` <span class="marks">${escapeHtml(marks)}</span>` : ''}</h3><p>${escapeHtml(excerptOf(card))}</p></article>`;
-        })
-        .join('');
+      const notes = hanging.map((card) => hangArticle(state, card)).join('');
       const img = page.imageUrl ? `<img src="${page.imageUrl}" alt="${escapeHtml(page.title)}" />` : '';
-      return `<section class="page"><h2>p${page.pageIndex + 1}. ${escapeHtml(page.title)}</h2>${img}<p class="excerpt">${escapeHtml(page.excerpt)}</p>${notes}</section>`;
+      const excerpt = clip(page.excerpt);
+      return `<section class="sheet page-sheet" data-print-page="${page.pageIndex}">
+  <h2>p${page.pageIndex + 1}. ${escapeHtml(page.title)}</h2>
+  <div class="spread">
+    <div class="printed">
+      <p class="kicker">Printed evidence</p>
+      ${img}
+      <p class="excerpt">${excerpt ? escapeHtml(excerpt) : 'No extracted excerpt on this page.'}</p>
+    </div>
+    <aside class="margin">
+      <p class="kicker">Handwritten margin</p>
+      ${notes || '<p class="blank">Blank margin — pin a leaf to hang notes here.</p>'}
+    </aside>
+  </div>
+</section>`;
     })
     .join('');
 
-  const trail = state.trail
+  const loose = looseCards(state)
+    .filter((card) => {
+      const layer = cardLayer(card);
+      return isLayerVisible(state.layers, layer.origin, layer.type);
+    })
+    .map((card) => hangArticle(state, card))
+    .join('');
+
+  const trail = orderedTrail(state.trail)
     .map((event) => {
-      const ai = event.fromAi ? ' <em>(AI)</em>' : '';
-      return `<li><time>${escapeHtml(event.at)}</time> ${escapeHtml(event.kind)}${ai} — ${escapeHtml(event.summary)}</li>`;
+      const voice = trailVoice(event.fromAi);
+      return `<li data-trail-kind="${escapeHtml(event.kind)}" data-from-ai="${event.fromAi ? 'true' : 'false'}" data-card="${escapeHtml(event.cardId)}"><time>${escapeHtml(event.at)}</time> <strong>${escapeHtml(trailKindLabel(event.kind))}</strong> <em class="voice-${voice}">(${voice === 'ai' ? 'AI' : 'ink'})</em> — ${escapeHtml(event.summary)}</li>`;
     })
     .join('');
 
@@ -40,42 +170,55 @@ export function buildPrintableHtml(state: DeskState): string {
 <head>
   <meta charset="utf-8" />
   <title>Terikiki — ${escapeHtml(title)}</title>
-  <style>
-    body { font-family: Palatino, "Iowan Old Style", serif; color: #1a1714; background: #f7f1e4; margin: 24px; }
-    h1 { font-size: 1.4rem; letter-spacing: 0.08em; text-transform: lowercase; }
-    h2 { font-size: 1.1rem; margin-top: 2rem; }
-    img { max-width: 100%; border: 1px solid #cbbfa8; }
-    .lede { color: #6b655c; }
-    .hang { border-left: 3px solid #c23b22; padding-left: 12px; margin: 12px 0; }
-    .marks { color: #c23b22; font-family: ui-monospace, monospace; }
-    .trail { font-size: 0.9rem; }
-    time { color: #6b655c; }
-    @media print { body { background: white; } }
-  </style>
+  <style>${PRINT_STYLES}</style>
 </head>
 <body>
-  <h1>terikiki</h1>
-  <p class="lede">Write on paper. Keep everything connected. — ${escapeHtml(title)}</p>
-  ${pageBlocks || '<p>No PDF pages on this desk.</p>'}
-  <h2>Thinking trail</h2>
-  <ol class="trail">${trail || '<li>Empty trail.</li>'}</ol>
+  <article class="packet" data-testid="review-packet">
+    <header>
+      <h1 class="wordmark">terikiki</h1>
+      <p class="promise">Write on paper. Keep everything connected.</p>
+      <p class="sheet-kicker">Review packet · ${escapeHtml(title)}</p>
+    </header>
+    ${pageBlocks || '<p class="blank">No PDF pages on this desk.</p>'}
+    <section class="sheet continuation">
+      <h2>Continuation</h2>
+      <p class="kicker">Loose leaves</p>
+      ${loose || '<p class="blank">No loose leaves — every note is hanging on a printed page.</p>'}
+      <h2>Thinking trail</h2>
+      <ol class="trail">${trail || '<li>Empty trail.</li>'}</ol>
+    </section>
+  </article>
 </body>
 </html>`;
 }
 
-function excerptOf(card: ReturnType<typeof allCards>[number]): string {
+function hangArticle(state: DeskState, card: MatrixCard): string {
+  const marks = confirmedMarksFor(state, card.id)
+    .map((m) => m.glyph)
+    .join(' ');
+  const ai = card.kind === 'ai';
+  return `<article class="hang${ai ? ' ai' : ''}" data-card="${escapeHtml(card.id)}"><h3>${escapeHtml(labelForCard(card))}${marks ? ` <span class="marks">${escapeHtml(marks)}</span>` : ''}${ai ? ' <em class="voice-ai">(AI)</em>' : ''}</h3><p>${escapeHtml(excerptOf(card))}</p></article>`;
+}
+
+function excerptOf(card: MatrixCard): string {
   switch (card.kind) {
     case 'pdf-page':
-      return card.excerpt;
+      return clip(card.excerpt);
     case 'note':
-      return card.caption;
+      return clip(card.caption);
     case 'ai':
-      return card.body;
+      return clip(card.body);
     default: {
       const _never: never = card;
       return _never;
     }
   }
+}
+
+function clip(value: string, max = 720): string {
+  const text = value.trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max).trimEnd()}…`;
 }
 
 function escapeHtml(value: string): string {

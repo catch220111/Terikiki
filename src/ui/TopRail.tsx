@@ -39,8 +39,12 @@ export function TopRail({ state, dispatch, onImportPdf, onImportNotes, onDetectM
           testId="import-notes"
           onFiles={onImportNotes}
         />
-        <InkBtn onClick={onDetectMarks}>Detect marks</InkBtn>
-        <InkBtn onClick={onExport}>Print desk</InkBtn>
+        <InkBtn testId="detect-marks" onClick={onDetectMarks}>
+          Detect marks
+        </InkBtn>
+        <InkBtn testId="print-desk" onClick={onExport}>
+          Print desk
+        </InkBtn>
         <InkBtn active={state.askOpen} onClick={() => dispatch({ type: 'open-ask', open: !state.askOpen })}>
           {state.askOpen ? 'Tuck Ask' : 'Pull Ask'}
         </InkBtn>

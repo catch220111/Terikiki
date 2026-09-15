@@ -67,13 +67,20 @@ export function InkBtn({
   children,
   onClick,
   active,
+  testId,
 }: {
   children: ReactNode;
   onClick: () => void;
   active?: boolean;
+  testId?: string;
 }) {
   return (
-    <button type="button" className={`ink-btn ${active ? 'active' : ''}`} onClick={onClick}>
+    <button
+      type="button"
+      className={`ink-btn ${active ? 'active' : ''}`}
+      onClick={onClick}
+      data-testid={testId}
+    >
       {children}
     </button>
   );

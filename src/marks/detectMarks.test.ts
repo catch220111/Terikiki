@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { detectMarks } from './detectMarks.ts';
 import { makeNote } from '../engine/selectors.ts';
+import { COMMAND_MARK_GLYPH } from '../types/domain.ts';
 
 describe('detectMarks', () => {
   it('proposes ?, box, and EXPLAIN without confirming them', () => {
@@ -15,6 +16,22 @@ describe('detectMarks', () => {
     expect(marks.every((m) => m.status === 'detected')).toBe(true);
     expect(marks.map((m) => m.kind).sort()).toEqual(['box', 'explain', 'question'].sort());
     expect(marks.some((m) => m.glyph === 'EXPLAIN')).toBe(true);
+  });
+
+  it('can propose the full boarding vocabulary and still leaves them unconfirmed', () => {
+    const note = makeNote({
+      title: 'Marked leaf',
+      caption: '? * box circle arrow review EXPLAIN important',
+      filename: 'note.svg',
+      imageUrl: '',
+      inkHints: ['R'],
+    });
+    const marks = detectMarks(note);
+    expect(marks.every((m) => m.status === 'detected')).toBe(true);
+    expect(marks.map((m) => m.kind).sort()).toEqual(
+      ['arrow', 'box', 'circle', 'explain', 'question', 'recall', 'star'].sort(),
+    );
+    expect(marks.map((m) => m.glyph).sort()).toEqual(Object.values(COMMAND_MARK_GLYPH).sort());
   });
 
   it('returns nothing when ink is unmarked', () => {

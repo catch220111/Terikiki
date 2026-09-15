@@ -21,6 +21,7 @@ import {
 } from '../types/domain.ts';
 import { createId, nowIso } from './ids.ts';
 import { describeTarget, hasMatchingAnchor } from './anchors.ts';
+import { makeTrailEvent } from '../trail/events.ts';
 
 export interface DeskState {
   document: StudyDocument | null;
@@ -104,7 +105,7 @@ function toggleSelection(current: readonly string[], cardId: string, _additive: 
 }
 
 function trailEvent(partial: Omit<ThinkingTrailEvent, 'id'>): ThinkingTrailEvent {
-  return { ...partial, id: createId('trail') };
+  return makeTrailEvent(partial);
 }
 
 function placeAnchor(state: DeskState, anchor: Anchor): DeskState {
@@ -326,8 +327,18 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
     }
     case 'append-trail':
       return { ...state, trail: [...state.trail, trailEvent(action.event)] };
-    case 'propose-marks':
-      return { ...state, marks: [...state.marks, ...action.marks] };
+    case 'propose-marks': {
+      const blocking = new Set(
+        state.marks
+          .filter((mark) => mark.status === 'detected' || mark.status === 'confirmed')
+          .map((mark) => `${mark.noteId}:${mark.kind}`),
+      );
+      const fresh = action.marks.filter(
+        (mark) => mark.status === 'detected' && !blocking.has(`${mark.noteId}:${mark.kind}`),
+      );
+      if (fresh.length === 0) return state;
+      return { ...state, marks: [...state.marks, ...fresh] };
+    }
     case 'confirm-mark': {
       const mark = state.marks.find((m) => m.id === action.markId);
       if (!mark || mark.status !== 'detected') return state;
@@ -337,7 +348,7 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
               trailEvent({
                 cardId: mark.noteId,
                 at: nowIso(),
-                kind: mark.kind === 'question' ? 'question' : 'ai_explanation',
+                kind: 'question',
                 layerOrigin: 'student',
                 layerType: 'questions',
                 summary: `Confirmed ${mark.glyph} on ${cardTitle(state, mark.noteId)}`,
@@ -351,11 +362,14 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
         trail: [...state.trail, ...questionTrail],
       };
     }
-    case 'dismiss-mark':
+    case 'dismiss-mark': {
+      const mark = state.marks.find((m) => m.id === action.markId);
+      if (!mark || mark.status !== 'detected') return state;
       return {
         ...state,
         marks: state.marks.map((m) => (m.id === action.markId ? { ...m, status: 'dismissed' } : m)),
       };
+    }
     case 'add-ai-turn':
       return {
         ...state,
