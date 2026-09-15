@@ -1,0 +1,36 @@
+{
+  "name": "terikiki",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Paper-first AI study tool: write on paper, keep everything connected.",
+  "scripts": {
+    "samples": "node scripts/generate-samples.mjs",
+    "dev": "npm run samples && vite",
+    "build": "npm run samples && tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "pdfjs-dist": "6.3.289",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "eslint": "10.10.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.70.0",
+    "vite": "8.3.0",
+    "vitest": "5.0.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
