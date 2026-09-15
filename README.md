@@ -18,6 +18,16 @@ Printable sheet, thin thinking trail, and command-mark stubs. Stage 1–3 locks 
 2. **Thinking trail** — append-only events keyed to card ids (`first_note`, `question`, `pdf_evidence`, `correction`, `ai_explanation`, `latest_understanding`). AI beats are labeled **AI**; student writing is **ink**. Lightweight history, not a VCS.
 3. **Command marks** — Detect → show for confirmation → Confirm or Dismiss only (desk inbox). Vocabulary: `?` unresolved question, `*` important, box → study card, circle → verify equation, arrow → relationship/anchor, `R` review, `EXPLAIN` request explanation. Confirming never silent-fires Ask, pins, or study cards. Print shows confirmed glyphs only.
 
+## Live preview
+
+Public HTTPS demo (GitHub Pages project site): **https://catch220111.github.io/Terikiki/**
+
+Pushes to `main` run [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): `npm ci` → `npm run build` (writes samples into `public/samples`, Vite `base` `/Terikiki/`) → `actions/upload-pages-artifact` → `actions/deploy-pages`. Sample PDF and note SVGs are same-origin under that base, so pdf.js load and note `<img>` paths work without a paid host.
+
+**First-time (after merge):** repo **Settings → Pages → Build and deployment → Source: GitHub Actions**. If the first deploy failed before that was set, re-run **Deploy GitHub Pages** from the Actions tab (`workflow_dispatch`).
+
+Local `npm run dev` / `npm run preview` also use `base: '/Terikiki/'`, so open `http://127.0.0.1:5174/Terikiki/` (dev) or `http://127.0.0.1:4173/Terikiki/` (preview).
+
 ## Demo
 
 ```bash
@@ -25,7 +35,7 @@ npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:5174`.
+Open `http://127.0.0.1:5174/Terikiki/`.
 
 The desk boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two loose handwritten notes. Match slips are **pending**. Marks wait for **Detect marks**.
 
