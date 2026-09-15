@@ -1,4 +1,5 @@
 import type { Dispatch } from 'react';
+import { isCardCited } from '../ai/context.ts';
 import type { AiCard, NoteCard as Note } from '../types/domain.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { anchorsForCard, confirmedMarksFor, isCardVisible, pendingSuggestionsFor } from '../engine/selectors.ts';
@@ -15,6 +16,7 @@ interface NoteProps {
 export function NoteCard({ note, state, dispatch }: NoteProps) {
   const selected = state.selection.cardIds.includes(note.id);
   const hovered = state.hoverCardId === note.id;
+  const cited = isCardCited(state, note.id);
   const visible = isCardVisible(state, note);
   const pending = pendingSuggestionsFor(state, note.id);
   const marks = confirmedMarksFor(state, note.id);
@@ -35,7 +37,8 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
     <article
       data-card={note.id}
       data-testid={`note-card-${note.id}`}
-      className={`paper-card note ${selected ? 'selected' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
+      data-cited={cited ? 'true' : undefined}
+      className={`paper-card note ${selected ? 'selected' : ''} ${cited ? 'cited' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
       onMouseEnter={() => dispatch({ type: 'set-hover', cardId: note.id })}
       onMouseLeave={() => dispatch({ type: 'set-hover', cardId: null })}
       onPointerDown={(e) => e.stopPropagation()}
@@ -151,12 +154,14 @@ export function AiCardView({
 }) {
   const selected = state.selection.cardIds.includes(card.id);
   const hovered = state.hoverCardId === card.id;
+  const cited = isCardCited(state, card.id);
   const visible = isCardVisible(state, card);
   return (
     <button
       type="button"
       data-card={card.id}
-      className={`paper-card ai ${selected ? 'selected' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
+      data-cited={cited ? 'true' : undefined}
+      className={`paper-card ai ${selected ? 'selected' : ''} ${cited ? 'cited' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
       onClick={(e) => {
         e.stopPropagation();
         dispatch({ type: 'select-card', cardId: card.id, additive: isAdditiveClick(e) });

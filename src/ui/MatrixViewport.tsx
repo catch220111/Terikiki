@@ -29,7 +29,10 @@ export function MatrixViewport({ state, dispatch, onImportNotes }: Props) {
     const viewport = viewportRef.current;
     const surfaceEl = surfaceRef.current;
     if (!viewport || !surfaceEl) return;
-    const el = surfaceEl.querySelector(`[data-card="${state.focusCardId}"]`);
+    const regionEl = state.citedAnchorId
+      ? surfaceEl.querySelector(`[data-region="${state.citedAnchorId}"]`)
+      : null;
+    const el = regionEl ?? surfaceEl.querySelector(`[data-card="${state.focusCardId}"]`);
     if (!el) return;
     const card = el.getBoundingClientRect();
     const view = viewport.getBoundingClientRect();
@@ -38,7 +41,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes }: Props) {
       dx: view.left + view.width / 2 - (card.left + card.width / 2),
       dy: view.top + view.height / 2 - (card.top + card.height / 2),
     });
-  }, [dispatch, state.focusCardId, state.revealNonce]);
+  }, [dispatch, state.citedAnchorId, state.focusCardId, state.revealNonce]);
 
   const onWheel = useCallback(
     (e: WheelEvent) => {

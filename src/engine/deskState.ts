@@ -38,6 +38,7 @@ export interface DeskState {
   aiTurns: AiTurn[];
   hoverCardId: string | null;
   focusCardId: string | null;
+  citedAnchorId: string | null;
   revealNonce: number;
   askOpen: boolean;
   anchorDraft: AnchorDraft | null;
@@ -59,6 +60,7 @@ export const initialDeskState: DeskState = {
   aiTurns: [],
   hoverCardId: null,
   focusCardId: null,
+  citedAnchorId: null,
   revealNonce: 0,
   askOpen: false,
   anchorDraft: null,
@@ -76,7 +78,7 @@ export type DeskAction =
   | { type: 'clear-selection' }
   | { type: 'remove-from-selection'; cardId: string }
   | { type: 'set-hover'; cardId: string | null }
-  | { type: 'focus-card'; cardId: string | null }
+  | { type: 'focus-card'; cardId: string | null; anchorId?: string }
   | { type: 'import-note'; note: NoteCard }
   | { type: 'begin-anchor'; noteId: string; mode: 'page' | 'region'; suggestionId?: string }
   | { type: 'set-anchor-page'; pageIndex: number }
@@ -165,6 +167,7 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
         selection: { cardIds: [] },
         anchorDraft: null,
         focusCardId: null,
+        citedAnchorId: null,
       };
     case 'patch-page-image':
       return {
@@ -218,11 +221,8 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
       return {
         ...state,
         focusCardId: action.cardId,
+        citedAnchorId: action.cardId ? (action.anchorId ?? null) : null,
         revealNonce: action.cardId ? state.revealNonce + 1 : state.revealNonce,
-        selection:
-          action.cardId && !state.selection.cardIds.includes(action.cardId)
-            ? { cardIds: [...state.selection.cardIds, action.cardId] }
-            : state.selection,
       };
     case 'import-note': {
       const isFirst = state.notes.length === 0;

@@ -6,6 +6,9 @@ export type LayerType = 'pdf' | 'handwriting' | 'transcription' | 'questions' | 
 
 export type CardKind = 'pdf-page' | 'note' | 'ai';
 
+/** Visual jump target for an Ask citation. Regions are pins, not cards. */
+export type CitationKind = CardKind | 'region';
+
 export type MatrixOrientation = 'vertical' | 'horizontal';
 
 /** How an anchor entered the graph. Pending suggestions are not a source. */
@@ -171,8 +174,18 @@ export interface CommandMark {
 }
 
 export interface AiCitation {
+  /** Selected card this citation is allowed to rest on. */
   cardId: string;
   quote: string;
+  kind: CitationKind;
+  /** Stamp label in the Ask tray, e.g. "PDF p2 · Energy sloshing". */
+  label: string;
+  pageIndex?: number;
+  region?: NormalizedRect;
+  /** Matrix card the camera should jump to (page for a region pin). */
+  revealCardId: string;
+  /** Region pin to highlight when this citation is a region. */
+  anchorId?: string;
 }
 
 export interface AiTurn {
@@ -270,6 +283,23 @@ export function matchSuggestionId(anchor: Anchor): string | undefined {
       return anchor.suggestionId;
     default: {
       const _never: never = anchor;
+      return _never;
+    }
+  }
+}
+
+export function citationKindVoice(kind: CitationKind): string {
+  switch (kind) {
+    case 'pdf-page':
+      return 'Printed page';
+    case 'note':
+      return 'Handwriting';
+    case 'ai':
+      return 'AI card';
+    case 'region':
+      return 'Pinned region';
+    default: {
+      const _never: never = kind;
       return _never;
     }
   }

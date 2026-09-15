@@ -46,7 +46,6 @@ export function FileBtn({
   return (
     <label className="file-btn" data-testid={testId}>
       {label}
-      {label}
       <input
         type="file"
         accept={accept}
