@@ -11,6 +11,7 @@ import {
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { ConnectorLayer } from './ConnectorLayer.tsx';
 import { PageCluster } from './PageCluster.tsx';
+import { PageFilmstrip } from './PageStrip.tsx';
 import { cameraFramingPage, lerpCamera, PAGE_GLIDE_MS, prefersReducedMotion } from './cameraGlide.ts';
 import { readingColumnCamera, READING_GUTTER_PX } from './cameraFit.ts';
 import type { ViewerTool } from './viewerTool.ts';
@@ -220,6 +221,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
         <ConnectorLayer state={state} surface={surface} />
         {state.pages.length === 0 && <div className="ghost">Open a PDF to populate the matrix.</div>}
       </div>
+      <PageFilmstrip state={state} dispatch={dispatch} />
     </div>
   );
 }

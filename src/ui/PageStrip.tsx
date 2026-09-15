@@ -34,7 +34,7 @@ function readingPageId(state: DeskState): string | null {
 
 export function PageFilmstrip({ state, dispatch }: Props) {
   const reduced = prefersReducedMotion();
-  const [revealed, setRevealed] = useState(reduced);
+  const [revealed, setRevealed] = useState(true);
   const [currentId, setCurrentId] = useState<string | null>(state.focusCardId);
   const idleRef = useRef(0);
 
@@ -52,9 +52,12 @@ export function PageFilmstrip({ state, dispatch }: Props) {
       window.clearTimeout(idleRef.current);
       idleRef.current = window.setTimeout(() => setRevealed(false), FILMSTRIP_IDLE_MS);
     }
+    bump();
     window.addEventListener('pointermove', bump);
+    window.addEventListener('mousemove', bump);
     return () => {
       window.removeEventListener('pointermove', bump);
+      window.removeEventListener('mousemove', bump);
       window.clearTimeout(idleRef.current);
     };
   }, [reduced]);

@@ -6,7 +6,7 @@ import { TopRail } from './TopRail.tsx';
 import { SelectionTray } from './SelectionTray.tsx';
 import { TrailStrip } from './TrailStrip.tsx';
 import { MatrixViewport } from './MatrixViewport.tsx';
-import { PageFilmstrip, ZoomFitBar } from './PageStrip.tsx';
+import { ZoomFitBar } from './PageStrip.tsx';
 import { AskPanel } from './AskPanel.tsx';
 import { PrintPreview } from './PrintPreview.tsx';
 import { pinModeForTool, pinToolHint, type ViewerTool } from './viewerTool.ts';
@@ -132,7 +132,6 @@ export function DeskShell({
         tool={tool}
         toolHint={state.anchorDraft ? null : pinToolHint(tool, Boolean(selectedNoteId(state)))}
       />
-      <PageFilmstrip state={state} dispatch={dispatch} />
       <ZoomFitBar state={state} dispatch={dispatch} />
       {inspectorOpen && (
         <TrailStrip state={state} dispatch={dispatch} onTuck={() => setInspectorOpen(false)} />

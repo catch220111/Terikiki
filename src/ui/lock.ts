@@ -354,8 +354,8 @@ export function filmstripIsBottomWayfinding(css: string, stripSrc: string): bool
     stripSrc.includes('page-filmstrip') &&
     stripSrc.includes('data-testid="page-strip"') &&
     stripSrc.includes('page-thumb') &&
-    /grid-area:\s*matrix/.test(body) &&
-    /align-self:\s*end/.test(body) &&
+    /position:\s*absolute/.test(body) &&
+    /bottom:\s*0/.test(body) &&
     /flex-direction:\s*row/.test(body) &&
     css.includes('.page-thumb.current') &&
     css.includes('var(--accent)') &&
@@ -380,6 +380,7 @@ export function filmstripAutoHide(css: string, stripSrc: string, glideSrc: strin
   return (
     stripSrc.includes('FILMSTRIP_IDLE_MS') &&
     stripSrc.includes('pointermove') &&
+    stripSrc.includes('mousemove') &&
     stripSrc.includes("'static'") &&
     glideSrc.includes('FILMSTRIP_IDLE_MS') &&
     /opacity:\s*0/.test(body) &&
@@ -412,7 +413,9 @@ export function vlV12ChromiumReaderMissing(
   if (!readingColumnIsDefault(css, clusterSrc, viewportSrc, cameraSrc) || !stageIsNearWhitePaper(css)) {
     missing.push('reading-column-default');
   }
-  if (!filmstripIsBottomWayfinding(css, stripSrc)) missing.push('bottom-filmstrip');
+  if (!filmstripIsBottomWayfinding(css, stripSrc) || !viewportSrc.includes('PageFilmstrip')) {
+    missing.push('bottom-filmstrip');
+  }
   if (!pageGlideIsEaseOut(glideSrc, viewportSrc) || !glideSrc.includes('pageGlideInBand')) {
     missing.push('page-glide-ease-out');
   }
