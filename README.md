@@ -8,13 +8,19 @@ Terikiki is a paper-first study tool. Handwriting is the primary intellectual ar
 
 Vite 8 + React 19 + TypeScript + `pdfjs-dist`. Node `>=22.12.0`.
 
-## Stage 4 (this cut)
+## Chrome (this cut)
 
-Printable sheet, thin thinking trail, and command-mark stubs. Stage 1–3 locks stay in force: handwriting primacy, Ask as a pulled tray, SelectionSet-only Ask context, pending matches never auto-pin, `FileBtn` a single label.
+The shell is a quiet consumer product: dark system chrome, tight sans type, light document cards on a spatial matrix. Handwriting cards stay largest. Origins are color + scale, not craft-desk texture.
+
+Stage 1–4 locks stay in force: handwriting primacy, Ask as a pulled tray, SelectionSet-only Ask context, pending matches never auto-pin, `FileBtn` a single label, one iframe print sheet, labeled trail, detect → confirm marks.
+
+## Stage 4
+
+Printable sheet, thin thinking trail, and command-mark stubs.
 
 **Stage 4 locks** (`src/export/lock.ts`, `src/trail/lock.ts`, `src/marks/lock.ts`):
 
-1. **One print sheet** — source excerpt + handwritten working margin on a single cream sheet. **Send to printer** prints the preview **iframe**, never `window.open`. If a thinking trail rides the sheet, it is a **thin ordered strip** with **(AI)** vs **(ink)** labels. Command marks confirm only in the app UI — the sheet never auto-executes unconfirmed marks.
+1. **One print sheet** — source excerpt + handwritten working margin on a single sheet. **Send to printer** prints the preview **iframe**, never `window.open`. If a thinking trail rides the sheet, it is a **thin ordered strip** with **(AI)** vs **(ink)** labels. Command marks confirm only in the app UI — the sheet never auto-executes unconfirmed marks.
 2. **Thinking trail** — append-only events keyed to card ids (`first_note`, `question`, `pdf_evidence`, `correction`, `ai_explanation`, `latest_understanding`). AI beats are labeled **AI**; student writing is **ink**. Lightweight history, not a VCS.
 3. **Command marks** — Detect → show for confirmation → Confirm or Dismiss only (desk inbox). Vocabulary: `?` unresolved question, `*` important, box → study card, circle → verify equation, arrow → relationship/anchor, `R` review, `EXPLAIN` request explanation. Confirming never silent-fires Ask, pins, or study cards. Print shows confirmed glyphs only.
 
@@ -37,14 +43,14 @@ npm run dev
 
 Open `http://127.0.0.1:5174/Terikiki/`.
 
-The desk boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two loose handwritten notes. Match slips are **pending**. Marks wait for **Detect marks**.
+The matrix boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two unpinned handwritten notes. Match slips are **pending**. Marks wait for **Detect marks**.
 
 ### Print desk / trail / detect → confirm
 
-1. Pan the walnut desk. On *Why beating?*, **Accept** the washi stub slip so the leaf hangs in that page’s margin.
+1. Pan the matrix. On *Why beating?*, **Accept** the pending stub so the note hangs in that page’s margin.
 2. **Detect marks**. The trail inbox lists proposals (`?`, box, `EXPLAIN`, …) with meanings. Nothing is committed yet.
-3. **Confirm** `?` on *Why beating?*. **Dismiss** or **Confirm** `EXPLAIN` on *Box the envelope*. Confirmed glyphs appear on the leaf in script; Ask does not open; no pin is written.
-4. Click the hanging leaf and its printed page. **Pull Ask**, ask a question, optionally **Pin answer on desk**. The trail shows student ink beats, then an **AI** explanation — separately labeled.
+3. **Confirm** `?` on *Why beating?*. **Dismiss** or **Confirm** `EXPLAIN` on *Box the envelope*. Confirmed glyphs appear on the note in script; Ask does not open; no pin is written.
+4. Click the hanging note and its printed page. **Pull Ask**, ask a question, optionally **Pin answer on desk**. The trail shows student ink beats, then an **AI** explanation — separately labeled.
 5. **Print desk**. One sheet: printed excerpt + handwritten margin. The thinking trail rides the sheet as a thin ordered strip (**ink** vs **AI**). Unconfirmed marks do not appear or execute — confirm them in the trail inbox first. **Send to printer** prints the iframe. Close / Escape.
 
 ### Stage 3 Ask (unchanged)

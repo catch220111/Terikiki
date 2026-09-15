@@ -46,5 +46,8 @@ describe('buildPrintableHtml', () => {
     expect(html).toContain('First note');
     expect(html).toContain('<span class="marks">?</span>');
     expect(html).not.toContain('<time');
+    expect(html).toContain('Terikiki');
+    expect(html).not.toContain('Palatino');
+    expect(html).not.toContain('#f4ead4');
   });
 });

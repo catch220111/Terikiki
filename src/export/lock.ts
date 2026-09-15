@@ -1,6 +1,7 @@
 /**
  * Stage 4 lock: one coherent print sheet (source excerpt + handwritten working margin).
  * Print goes through an iframe, never window.open. AI vs student must be labeled.
+ * Visual chrome may change; these labels and class names stay.
  */
 export function printSheetHasSourceAndWorkingMargin(html: string): boolean {
   return (

@@ -16,7 +16,7 @@ export function TopRail({ state, dispatch, onImportPdf, onImportNotes, onDetectM
   return (
     <header className="top-rail">
       <div className="brand">
-        <span className="brand-mark">terikiki</span>
+        <span className="brand-mark">Terikiki</span>
         <span className="brand-promise">Write on paper. Keep everything connected.</span>
       </div>
       <div className="rail-tools">
