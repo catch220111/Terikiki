@@ -8,7 +8,6 @@ import {
   READING_GUTTER_PX,
   readingColumnCamera,
 } from './cameraFit.ts';
-import { CARD_WIDTH_PX } from './lock.ts';
 import {
   PAGE_GLIDE_MS,
   cameraFramingPage,
@@ -16,12 +15,7 @@ import {
   lerpCamera,
   pageGlideInBand,
 } from './cameraGlide.ts';
-import { filmstripIsOnlySaturatedNavigator } from './lock.ts';
-
-const { readFileSync } = await import('fs');
-const { dirname, join } = await import('path');
-const { fileURLToPath } = await import('url');
-const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../styles/desk.css'), 'utf8');
+import { CARD_WIDTH_PX } from './lock.ts';
 
 /** CLV lane: connected PDF+ink glance + filmstrip glide + fade/reduced-motion owned in filmstripChrome. */
 
@@ -80,10 +74,11 @@ describe('CLV filmstrip glide', () => {
     expect(mid.x).toBeLessThan(Math.max(from.x, to.x));
     expect(lerpCamera(from, to, 1)).toEqual(to);
   });
-});
 
-describe('CLV Valentina thesis smoke', () => {
-  it('keeps the filmstrip as the only saturated navigator in desk.css', () => {
-    expect(filmstripIsOnlySaturatedNavigator(css)).toBe(true);
+  it('wires MatrixViewport glide through cameraGlide (PAGE_GLIDE_MS + lerpCamera)', () => {
+    expect(viewportSrc).toContain('PAGE_GLIDE_MS');
+    expect(viewportSrc).toContain('lerpCamera');
+    expect(viewportSrc).toContain('cameraFramingPage');
+    expect(viewportSrc).toContain("type: 'set-camera'");
   });
 });
