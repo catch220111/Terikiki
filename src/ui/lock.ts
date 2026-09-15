@@ -336,6 +336,16 @@ export function stageIsNearWhitePaper(css: string): boolean {
   return min >= 0xe8 && max < 0xff && !/#f4ead4|#f3ead6|#1b1410/.test(css);
 }
 
+/** Valentina: filmstrip carries --accent; the reading column stays quiet paper, not --hand. */
+export function filmstripIsOnlySaturatedNavigator(css: string): boolean {
+  return (
+    /page-thumb\.current[\s\S]{0,400}var\(--accent\)/.test(css) &&
+    css.includes('.reading-column .paper-card.pdf') &&
+    !/\.reading-column[\s\S]{0,500}var\(--hand\)/.test(css) &&
+    !/\.reading-column[\s\S]{0,500}var\(--accent\)/.test(css)
+  );
+}
+
 export function readingColumnIsDefault(
   css: string,
   clusterSrc: string,
@@ -435,6 +445,7 @@ export function vlV12ChromiumReaderMissing(
   if (!readingColumnIsDefault(css, clusterSrc, viewportSrc, cameraSrc) || !stageIsNearWhitePaper(css)) {
     missing.push('reading-column-default');
   }
+  if (!filmstripIsOnlySaturatedNavigator(css)) missing.push('filmstrip-only-saturated-navigator');
   if (!filmstripIsBottomWayfinding(css, stripSrc) || !viewportSrc.includes('PageFilmstrip')) {
     missing.push('bottom-filmstrip');
   }

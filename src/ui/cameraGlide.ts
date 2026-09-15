@@ -1,6 +1,6 @@
 import type { Camera } from '../types/domain.ts';
 
-/** CLV lane — thumb → page glide. VL v1.2: 180–280ms ease-out, no overshoot. */
+/** CLV lane — thumb → page glide onto anonymous paper. VL v1.2: 180–280ms ease-out, no overshoot. */
 export const PAGE_GLIDE_MS = 220;
 
 export function pageGlideInBand(ms: number): boolean {

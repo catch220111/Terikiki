@@ -26,6 +26,7 @@ import {
   dualSurfaceRoles,
   filmstripAutoHide,
   filmstripIsBottomWayfinding,
+  filmstripIsOnlySaturatedNavigator,
   handwritingHasSizePrimacy,
   missingVlV1Tokens,
   pageGlideIsEaseOut,
@@ -116,6 +117,7 @@ describe('VL v1.1 implementable cut', () => {
   it('locks Galvez IA + Valentina VL v1.2 Chromium-reader', () => {
     expect(stageIsNearWhitePaper(css)).toBe(true);
     expect(readingColumnIsDefault(css, clusterSrc, viewportSrc, cameraSrc)).toBe(true);
+    expect(filmstripIsOnlySaturatedNavigator(css)).toBe(true);
     expect(filmstripIsBottomWayfinding(css, stripSrc)).toBe(true);
     expect(pageGlideIsEaseOut(glideSrc, viewportSrc)).toBe(true);
     expect(filmstripAutoHide(css, stripSrc, chromeSrc)).toBe(true);

@@ -361,6 +361,20 @@ img { max-width: 100%; display: block; }
   align-items: center;
   gap: 18px;
 }
+/* CLV / Valentina: anonymous quiet paper on the stage — not a chrome object.
+   Filmstrip is the only saturated navigator; --hand stays on handwriting. */
+.reading-column .paper-card.pdf {
+  box-shadow: 0 1px 0 rgba(15, 15, 18, 0.05);
+  border-color: rgba(15, 15, 18, 0.06);
+}
+.reading-column .paper-card.pdf .card-kicker {
+  color: #aeaeb2;
+  font-weight: 500;
+}
+.reading-column .cluster-label {
+  color: color-mix(in srgb, var(--muted) 55%, var(--stage));
+  font-weight: 500;
+}
 .orientation-horizontal .reading-column {
   flex-direction: row;
   justify-content: center;

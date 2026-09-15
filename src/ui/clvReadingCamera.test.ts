@@ -13,6 +13,12 @@ import {
   lerpCamera,
   pageGlideInBand,
 } from './cameraGlide.ts';
+import { filmstripIsOnlySaturatedNavigator } from './lock.ts';
+
+const { readFileSync } = await import('fs');
+const { dirname, join } = await import('path');
+const { fileURLToPath } = await import('url');
+const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../styles/desk.css'), 'utf8');
 
 /** CLV lane lock: reading-column default camera + filmstrip→glide. James owns fade/reduced-motion. */
 
@@ -79,5 +85,13 @@ describe('CLV filmstrip glide', () => {
     expect(viewportSrc).toContain('cameraFramingPage');
     expect(viewportSrc).toContain('requestAnimationFrame');
     expect(viewportSrc).toContain("type: 'set-camera'");
+  });
+
+  it('keeps the page stage anonymous; filmstrip is the only saturated navigator', () => {
+    expect(filmstripIsOnlySaturatedNavigator(css)).toBe(true);
+    expect(css).toMatch(/\.matrix-viewport\s*\{[^}]*background:\s*var\(--stage\)/s);
+    expect(css).toMatch(/\.reading-column \.paper-card\.pdf/);
+    expect(css).toMatch(/page-thumb\.current[\s\S]*var\(--accent\)/);
+    expect(css).not.toMatch(/\.reading-column[\s\S]{0,500}var\(--hand\)/);
   });
 });
