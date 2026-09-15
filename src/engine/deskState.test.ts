@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { deskReducer, initialDeskState } from './deskState.ts';
 import { makeNote, makePdfPage, pendingSuggestionsFor, selectedCards } from './selectors.ts';
 import { matchAnchorsCiteDecidedSuggestions, pendingSuggestionIdsOnGraph } from '../matching/lock.ts';
+import { trailIsKeyedToCards, trailVoiceViolations } from '../trail/lock.ts';
 import type { MatchSuggestion } from '../types/domain.ts';
 
 function page(index: number) {
@@ -38,6 +39,8 @@ function suggestion(noteId: string, overrides: Partial<MatchSuggestion> = {}): M
 function lockHolds(state: ReturnType<typeof hydrated>) {
   expect(pendingSuggestionIdsOnGraph(state.suggestions, state.anchors)).toEqual([]);
   expect(matchAnchorsCiteDecidedSuggestions(state.suggestions, state.anchors)).toBe(true);
+  expect(trailVoiceViolations(state.trail)).toEqual([]);
+  expect(trailIsKeyedToCards(state.trail)).toBe(true);
 }
 
 function hydrated() {
@@ -243,6 +246,7 @@ describe('deskReducer', () => {
     expect(state.aiTurns[0]?.selectionCardIds).toEqual([a]);
     expect(state.askOpen).toBe(true);
     expect(state.trail.some((e) => e.fromAi && e.kind === 'ai_explanation')).toBe(true);
+    lockHolds(state);
   });
 
   it('confirming a detected mark does not happen implicitly', () => {
@@ -266,6 +270,7 @@ describe('deskReducer', () => {
     state = deskReducer(state, { type: 'confirm-mark', markId: 'mark_1' });
     expect(state.marks[0]?.status).toBe('confirmed');
     expect(state.trail.some((e) => e.kind === 'question')).toBe(true);
+    lockHolds(state);
   });
 
   it('Stage 2 lock: pending stays off the graph; reject writes nothing; manual pin needs no suggestion', () => {

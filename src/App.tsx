@@ -3,7 +3,7 @@ import { DeskProvider, useDesk } from './engine/DeskContext.tsx';
 import { makeNote, makePdfPage } from './engine/selectors.ts';
 import { loadPdfFromFile, loadPdfFromUrl, type LoadedPdf } from './pdf/loadPdf.ts';
 import { detectMarks } from './marks/detectMarks.ts';
-import { buildPrintableHtml, printHtml } from './export/printSheet.ts';
+import { buildPrintableHtml } from './export/printSheet.ts';
 import { SAMPLE_DOCUMENT_ID, SAMPLE_DOCUMENT_TITLE, SAMPLE_NOTES, SAMPLE_PDF_URL } from './demo/bootstrap.ts';
 import { DeskShell } from './ui/DeskShell.tsx';
 import type { DeskAction } from './engine/deskState.ts';
@@ -50,12 +50,12 @@ function ingestHandwriting(
 ) {
   dispatch({ type: 'import-note', note });
   dispatch({ type: 'propose-matches', suggestions: [...matcher.suggestForNote(note, pages)] });
-  dispatch({ type: 'propose-marks', marks: detectMarks(note) });
 }
 
 function DeskApp() {
   const { state, dispatch, ai, matcher } = useDesk();
   const [status, setStatus] = useState('Laying out the sample lecture…');
+  const [printPreview, setPrintPreview] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -126,7 +126,11 @@ function DeskApp() {
   function onDetectMarks() {
     let added = 0;
     for (const note of state.notes) {
-      const existing = new Set(state.marks.filter((m) => m.noteId === note.id).map((m) => m.kind));
+      const existing = new Set(
+        state.marks
+          .filter((m) => m.noteId === note.id && (m.status === 'detected' || m.status === 'confirmed'))
+          .map((m) => m.kind),
+      );
       const fresh = detectMarks(note).filter((m) => !existing.has(m.kind));
       if (fresh.length === 0) continue;
       added += fresh.length;
@@ -140,9 +144,12 @@ function DeskApp() {
   }
 
   function onExport() {
-    const html = buildPrintableHtml(state);
-    if (!printHtml(html)) setStatus('Could not open the print sheet.');
-    else setStatus('Print dialog opened for the desk sheet.');
+    setPrintPreview(buildPrintableHtml(state));
+    setStatus('Print sheet ready — Send to printer, or Close.');
+  }
+
+  function onSendToPrinter(ok: boolean) {
+    setStatus(ok ? 'Print dialog opened for the iframe sheet.' : 'Could not print the iframe sheet.');
   }
 
   return (
@@ -154,6 +161,9 @@ function DeskApp() {
       onImportNotes={onImportNotes}
       onDetectMarks={onDetectMarks}
       onExport={onExport}
+      printHtml={printPreview}
+      onClosePrint={() => setPrintPreview(null)}
+      onSendToPrinter={onSendToPrinter}
       status={status}
     />
   );

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   COMMAND_MARK_GLYPH,
+  COMMAND_MARK_IF_CONFIRMED,
+  COMMAND_MARK_MEANING,
   DEFAULT_LAYER_VISIBILITY,
   cardLayer,
   citationKindVoice,
@@ -55,11 +57,16 @@ describe('cardLayer', () => {
 });
 
 describe('command marks', () => {
-  it('exposes the boarding glyphs', () => {
+  it('exposes the boarding glyphs and meanings', () => {
     expect(COMMAND_MARK_GLYPH.question).toBe('?');
     expect(COMMAND_MARK_GLYPH.star).toBe('*');
     expect(COMMAND_MARK_GLYPH.recall).toBe('R');
     expect(COMMAND_MARK_GLYPH.explain).toBe('EXPLAIN');
+    expect(COMMAND_MARK_MEANING.question).toBe('Unresolved question');
+    expect(COMMAND_MARK_MEANING.box).toMatch(/study card/i);
+    expect(COMMAND_MARK_MEANING.circle).toMatch(/equation/i);
+    expect(COMMAND_MARK_MEANING.arrow).toMatch(/anchor/i);
+    expect(COMMAND_MARK_IF_CONFIRMED.explain).toMatch(/until you Ask/i);
   });
 });
 

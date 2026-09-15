@@ -6,6 +6,7 @@ import { SelectionTray } from './SelectionTray.tsx';
 import { TrailStrip } from './TrailStrip.tsx';
 import { MatrixViewport } from './MatrixViewport.tsx';
 import { AskPanel } from './AskPanel.tsx';
+import { PrintPreview } from './PrintPreview.tsx';
 
 interface Props {
   state: DeskState;
@@ -15,6 +16,9 @@ interface Props {
   onImportNotes: (files: readonly File[]) => void;
   onDetectMarks: () => void;
   onExport: () => void;
+  printHtml: string | null;
+  onClosePrint: () => void;
+  onSendToPrinter: (ok: boolean) => void;
   status: string;
 }
 
@@ -26,11 +30,18 @@ export function DeskShell({
   onImportNotes,
   onDetectMarks,
   onExport,
+  printHtml,
+  onClosePrint,
+  onSendToPrinter,
   status,
 }: Props) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'Escape') return;
+      if (printHtml) {
+        onClosePrint();
+        return;
+      }
       if (state.anchorDraft) {
         dispatch({ type: 'cancel-anchor' });
         return;
@@ -39,7 +50,7 @@ export function DeskShell({
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [dispatch, state.anchorDraft, state.askOpen]);
+  }, [dispatch, onClosePrint, printHtml, state.anchorDraft, state.askOpen]);
 
   return (
     <div className="desk">
@@ -56,6 +67,7 @@ export function DeskShell({
       <MatrixViewport state={state} dispatch={dispatch} onImportNotes={onImportNotes} />
       <AskPanel state={state} dispatch={dispatch} ai={ai} />
       <div className="status-bar">{status}</div>
+      {printHtml && <PrintPreview html={printHtml} onClose={onClosePrint} onPrint={onSendToPrinter} />}
     </div>
   );
 }
