@@ -1,0 +1,17 @@
+{
+  "name": "Terikiki",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "npx vite",
+      "description": "Vite dev server (http://127.0.0.1:5174)."
+    }
+  ],
+  "ports": [
+    {
+      "name": "vite dev server",
+      "port": 5174
+    }
+  ]
+}
