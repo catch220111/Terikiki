@@ -99,19 +99,7 @@ img { max-width: 100%; display: block; }
   background: var(--paper);
   color: var(--desk);
 }
-.file-btn {
-  position: relative;
-  overflow: hidden;
-}
-.file-btn input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  font-size: 0;
-}
+.file-btn input { display: none; }
 
 .layer-toggles { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .layer-toggle {

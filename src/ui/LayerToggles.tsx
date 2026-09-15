@@ -53,10 +53,9 @@ export function FileBtn({
         multiple={multiple}
         data-testid={testId ? `${testId}-input` : undefined}
         onChange={(e) => {
-          const list = e.target.files;
+          const files = e.target.files ? [...e.target.files] : [];
           e.target.value = '';
-          if (!list || list.length === 0) return;
-          const files = [...list];
+          if (files.length === 0) return;
           if (onFiles) onFiles(files);
           else if (onFile && files[0]) onFile(files[0]);
         }}
