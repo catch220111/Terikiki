@@ -7,6 +7,9 @@ import stripSrc from './PageStrip.tsx?raw';
 import traySrc from './SelectionTray.tsx?raw';
 import shellSrc from './DeskShell.tsx?raw';
 import viewportSrc from './MatrixViewport.tsx?raw';
+import clusterSrc from './PageCluster.tsx?raw';
+import cameraSrc from './cameraFit.ts?raw';
+import glideSrc from './cameraGlide.ts?raw';
 import {
   askPanelIsFlatSheet,
   askRemainsMatrixOverlay,
@@ -20,15 +23,21 @@ import {
   connectorsAreSelectHoverOnly,
   craftChromeLeaks,
   dualSurfaceRoles,
+  filmstripIsBottomWayfinding,
   handwritingHasSizePrimacy,
   missingVlV1Tokens,
+  pageGlideIsEaseOut,
   pageStripIsReadingChrome,
   pinChromeIsNotOnLeaves,
   pinDrivenByActiveTool,
+  readingColumnIsDefault,
+  reducedMotionReader,
   scriptUsedOutsideGlyphs,
+  stageIsNearWhitePaper,
   toolbarIsDocumentApp,
   trailIsCollapsedInspector,
   vlV11LayoutMissing,
+  vlV12ChromiumReaderMissing,
   zoomFitBarIsCompact,
   engThinReviewMissing,
   galvezJamesMissing,
@@ -95,10 +104,22 @@ describe('VL v1.1 implementable cut', () => {
     expect(pinDrivenByActiveTool(traySrc, shellSrc)).toBe(true);
     expect(engThinReviewMissing(noteSrc, traySrc, shellSrc, css)).toEqual([]);
     expect(galvezJamesMissing(traySrc, railSrc, stripSrc, viewportSrc, css)).toEqual([]);
-    expect(css).toMatch(/\.thumb-rail/);
+    expect(css).toMatch(/\.page-filmstrip/);
     expect(css).toMatch(/\.zoom-fit-bar/);
     expect(css).toMatch(/\.segmented/);
     expect(traySrc).toMatch(/annotation-strip/);
     expect(css).not.toMatch(/brand-promise/);
+  });
+
+  it('locks Galvez IA + Valentina VL v1.2 Chromium-reader', () => {
+    expect(stageIsNearWhitePaper(css)).toBe(true);
+    expect(readingColumnIsDefault(css, clusterSrc, viewportSrc, cameraSrc)).toBe(true);
+    expect(filmstripIsBottomWayfinding(css, stripSrc)).toBe(true);
+    expect(pageGlideIsEaseOut(glideSrc, viewportSrc)).toBe(true);
+    expect(reducedMotionReader(css, glideSrc, viewportSrc)).toBe(true);
+    expect(vlV12ChromiumReaderMissing(css, stripSrc, clusterSrc, viewportSrc, cameraSrc, glideSrc)).toEqual([]);
+    expect(handwritingHasSizePrimacy(css)).toBe(true);
+    expect(galvezJamesMissing(traySrc, railSrc, stripSrc, viewportSrc, css)).toEqual([]);
+    expect(css).not.toMatch(/\.thumb-rail/);
   });
 });

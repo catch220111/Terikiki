@@ -1,13 +1,14 @@
 /**
- * VL v1.1 implementable cut (Valentina). Tokens and shell only — Stage 1–4
- * behavior stays. Soft residuals stay backlog.
+ * VL v1.2 Chromium-reader (Galvez IA + Valentina VL). Tokens and shell only —
+ * Stage 1–4 behavior stays. Soft residuals stay backlog.
  *
- * - Keep v1 tokens; no craft regress.
- * - Dual surface: tool chrome vs light page paper (`--stage`, not a v1 token).
- * - Thumbnail rail, compact zoom/fit bar (Fit width / Fit page), segmented annotation strip.
- * - Pan on the strip; Detect / Print / Ask with annotation tools; quieter file actions.
- * - Trail as collapsed inspector drawer. Ask stays Pull/Tuck flat sheet.
- * - Handwriting size primacy unchanged.
+ * - Keep v1 tokens + v1.1 PDF-editor tools; no craft regress.
+ * - Document-first centered continuous PDF reading column on quiet gutter.
+ * - `--stage` nearer white page paper; default camera frames the reading column.
+ * - Horizontal bottom page filmstrip (silhouettes, restrained `--accent`).
+ * - Thumb click glides 180–280ms ease-out, no bounce.
+ * - Filmstrip idle fade 1.2–2s; prefers-reduced-motion: instant jump, static strip, no animated highlight.
+ * - Handwriting size primacy unchanged. Ask stays Pull/Tuck.
  */
 export const VL_V1_TOKENS = [
   '--bg',
@@ -116,7 +117,6 @@ export function askRemainsMatrixOverlay(css: string): boolean {
   if (!ask?.[1] || !desk?.[1]) return false;
   return (
     /grid-area:\s*matrix/.test(ask[1]) &&
-    /thumbs/.test(desk[1]) &&
     /matrix/.test(desk[1]) &&
     /zoom/.test(desk[1]) &&
     !/ask-rail|chat-rail/.test(css)
@@ -166,6 +166,7 @@ export function pageStripIsReadingChrome(stripSrc: string): boolean {
     stripSrc.includes("type: 'set-camera'") &&
     stripSrc.includes('data-testid="page-strip"') &&
     stripSrc.includes('data-testid="zoom-fit-bar"') &&
+    stripSrc.includes('page-filmstrip') &&
     !stripSrc.includes("type: 'select-card'") &&
     !stripSrc.includes("type: 'open-ask'")
   );
@@ -178,7 +179,7 @@ function ruleBodyContaining(css: string, className: string): string {
 
 const TOOL_CHROME_SURFACES = [
   'doc-toolbar',
-  'thumb-rail',
+  'page-filmstrip',
   'zoom-fit-bar',
   'trail-drawer',
   'ask-panel',
@@ -215,7 +216,7 @@ export function zoomFitBarIsCompact(css: string, stripSrc: string): boolean {
   );
 }
 
-/** VL v1.1 layout: thumbnail rail, compact zoom/fit, segmented annotation strip, collapsed trail, Ask sheet. */
+/** VL v1.1 layout: thumbnail navigator, compact zoom/fit, segmented annotation strip, collapsed trail, Ask sheet. */
 export function vlV11LayoutMissing(
   css: string,
   stripSrc: string,
@@ -223,7 +224,7 @@ export function vlV11LayoutMissing(
   shellSrc: string,
 ): string[] {
   const missing: string[] = [];
-  if (!css.includes('.thumb-rail') || !stripSrc.includes('thumb-rail')) missing.push('thumbnail-rail');
+  if (!css.includes('.page-filmstrip') || !stripSrc.includes('page-filmstrip')) missing.push('thumbnail-rail');
   if (!zoomFitBarIsCompact(css, stripSrc)) missing.push('compact-zoom-fit-bar');
   if (!css.includes('.segmented') || !traySrc.includes('annotation-strip') || !traySrc.includes('segmented')) {
     missing.push('segmented-annotation-strip');
@@ -237,7 +238,7 @@ export function vlV11LayoutMissing(
 export function trailIsCollapsedInspector(css: string, shellSrc: string): boolean {
   const desk = css.match(/\.desk\s*\{([^}]+)\}/);
   return (
-    Boolean(desk?.[1]?.includes('thumbs')) &&
+    Boolean(desk?.[1]?.includes('matrix')) &&
     !/grid-template-areas:[\s\S]*notes/.test(desk?.[1] ?? '') &&
     css.includes('.trail-drawer') &&
     /grid-area:\s*matrix/.test(css.match(/\.trail-drawer\s*\{([^}]+)\}/)?.[1] ?? '') &&
@@ -312,3 +313,111 @@ export function galvezJamesMissing(
   if (!railSrc.includes('quiet') || !css.includes('.file-btn.quiet')) missing.push('quiet-file-actions');
   return missing;
 }
+
+function hexChannels(css: string, token: string): { r: number; g: number; b: number } | null {
+  const match = css.match(new RegExp(`${token}:\\s*#([0-9a-fA-F]{6})`));
+  if (!match?.[1]) return null;
+  const n = Number.parseInt(match[1], 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+/** VL v1.2: `--stage` is nearer white page paper than cool gray, still a quiet gutter. */
+export function stageIsNearWhitePaper(css: string): boolean {
+  const stage = hexChannels(css, '--stage');
+  if (!stage) return false;
+  const min = Math.min(stage.r, stage.g, stage.b);
+  const max = Math.max(stage.r, stage.g, stage.b);
+  return min >= 0xe8 && max < 0xff && !/#f4ead4|#f3ead6|#1b1410/.test(css);
+}
+
+export function readingColumnIsDefault(
+  css: string,
+  clusterSrc: string,
+  viewportSrc: string,
+  cameraSrc: string,
+): boolean {
+  return (
+    css.includes('.reading-column') &&
+    clusterSrc.includes('reading-column') &&
+    clusterSrc.includes('data-testid="reading-column"') &&
+    /background:\s*var\(--stage\)/.test(ruleBodyContaining(css, 'matrix-viewport')) &&
+    !/radial-gradient/.test(ruleBodyContaining(css, 'matrix-viewport')) &&
+    viewportSrc.includes('readingColumnCamera') &&
+    cameraSrc.includes('readingColumnCamera') &&
+    cameraSrc.includes('viewWidth * (1 - zoom) / 2')
+  );
+}
+
+export function filmstripIsBottomWayfinding(css: string, stripSrc: string): boolean {
+  const body = ruleBodyContaining(css, 'page-filmstrip');
+  return (
+    stripSrc.includes('page-filmstrip') &&
+    stripSrc.includes('data-testid="page-strip"') &&
+    stripSrc.includes('page-thumb') &&
+    /grid-area:\s*matrix/.test(body) &&
+    /align-self:\s*end/.test(body) &&
+    /flex-direction:\s*row/.test(body) &&
+    css.includes('.page-thumb.current') &&
+    css.includes('var(--accent)') &&
+    !stripSrc.includes("type: 'select-card'")
+  );
+}
+
+export function pageGlideIsEaseOut(glideSrc: string, viewportSrc: string): boolean {
+  return (
+    glideSrc.includes('PAGE_GLIDE_MS') &&
+    glideSrc.includes('easeOutCubic') &&
+    glideSrc.includes('lerpCamera') &&
+    !/easeOutBack|elastic|cubic-bezier\(/.test(glideSrc) &&
+    viewportSrc.includes('PAGE_GLIDE_MS') &&
+    viewportSrc.includes('lerpCamera') &&
+    viewportSrc.includes('prefersReducedMotion')
+  );
+}
+
+export function filmstripAutoHide(css: string, stripSrc: string, glideSrc: string): boolean {
+  const body = ruleBodyContaining(css, 'page-filmstrip');
+  return (
+    stripSrc.includes('FILMSTRIP_IDLE_MS') &&
+    stripSrc.includes('pointermove') &&
+    stripSrc.includes("'static'") &&
+    glideSrc.includes('FILMSTRIP_IDLE_MS') &&
+    /opacity:\s*0/.test(body) &&
+    /translateY\(8px\)/.test(body) &&
+    css.includes('150ms') &&
+    css.includes('@media (prefers-reduced-motion: reduce)')
+  );
+}
+
+export function reducedMotionReader(css: string, glideSrc: string, viewportSrc: string): boolean {
+  return (
+    glideSrc.includes('prefersReducedMotion') &&
+    viewportSrc.includes('prefersReducedMotion') &&
+    css.includes('@media (prefers-reduced-motion: reduce)') &&
+    /prefers-reduced-motion: reduce\)[\s\S]*transition:\s*none/.test(css) &&
+    /prefers-reduced-motion: reduce\)[\s\S]*opacity:\s*1/.test(css)
+  );
+}
+
+/** Galvez IA + Valentina VL v1.2 Chromium-reader shell. */
+export function vlV12ChromiumReaderMissing(
+  css: string,
+  stripSrc: string,
+  clusterSrc: string,
+  viewportSrc: string,
+  cameraSrc: string,
+  glideSrc: string,
+): string[] {
+  const missing: string[] = [];
+  if (!readingColumnIsDefault(css, clusterSrc, viewportSrc, cameraSrc) || !stageIsNearWhitePaper(css)) {
+    missing.push('reading-column-default');
+  }
+  if (!filmstripIsBottomWayfinding(css, stripSrc)) missing.push('bottom-filmstrip');
+  if (!pageGlideIsEaseOut(glideSrc, viewportSrc) || !glideSrc.includes('pageGlideInBand')) {
+    missing.push('page-glide-ease-out');
+  }
+  if (!filmstripAutoHide(css, stripSrc, glideSrc)) missing.push('filmstrip-idle-reveal');
+  if (!reducedMotionReader(css, glideSrc, viewportSrc)) missing.push('reduced-motion-static-strip');
+  return missing;
+}
+
