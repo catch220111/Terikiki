@@ -13,24 +13,22 @@ interface Props {
 
 export function TopRail({ state, dispatch, onImportPdf, onImportNotes, onDetectMarks, onExport }: Props) {
   const vertical = state.orientation === 'vertical';
+  const pageCount = state.document?.pageCount ?? state.pages.length;
   return (
-    <header className="top-rail">
+    <header className="doc-toolbar" role="toolbar" aria-label="Document tools">
       <div className="brand">
         <span className="brand-mark">Terikiki</span>
-        <span className="brand-promise">Write on paper. Keep everything connected.</span>
       </div>
-      <div className="rail-tools">
-        <InkBtn
-          active={!vertical}
-          onClick={() =>
-            dispatch({ type: 'set-orientation', orientation: vertical ? 'horizontal' : 'vertical' })
-          }
-        >
-          {vertical ? 'PDF ↓  notes →' : 'PDF →  notes ↓'}
-        </InkBtn>
-        <LayerToggles layers={state.layers} dispatch={dispatch} />
+      <div className="doc-identity">
+        <span className="doc-title">{state.document?.title ?? 'No document'}</span>
+        <span className="doc-meta">
+          {pageCount > 0 ? `${pageCount} ${pageCount === 1 ? 'page' : 'pages'}` : 'Open a PDF'}
+          {state.notes.length > 0
+            ? ` · ${state.notes.length} ${state.notes.length === 1 ? 'note' : 'notes'}`
+            : ''}
+        </span>
       </div>
-      <div className="rail-files">
+      <div className="tool-group" role="group" aria-label="Files">
         <FileBtn label="Open PDF" accept="application/pdf" onFile={onImportPdf} />
         <FileBtn
           label="Import notes"
@@ -39,11 +37,26 @@ export function TopRail({ state, dispatch, onImportPdf, onImportNotes, onDetectM
           testId="import-notes"
           onFiles={onImportNotes}
         />
+      </div>
+      <div className="tool-group" role="group" aria-label="View">
+        <InkBtn
+          active={!vertical}
+          title={vertical ? 'Pages stack; notes hang beside' : 'Pages sit in a row; notes hang below'}
+          onClick={() =>
+            dispatch({ type: 'set-orientation', orientation: vertical ? 'horizontal' : 'vertical' })
+          }
+        >
+          {vertical ? 'Pages ↓' : 'Pages →'}
+        </InkBtn>
+        <span className="tool-kicker">Layers</span>
+        <LayerToggles layers={state.layers} dispatch={dispatch} />
+      </div>
+      <div className="tool-group tool-group-end" role="group" aria-label="Actions">
         <InkBtn testId="detect-marks" onClick={onDetectMarks}>
           Detect marks
         </InkBtn>
         <InkBtn testId="print-desk" onClick={onExport}>
-          Print desk
+          Print
         </InkBtn>
         <InkBtn active={state.askOpen} onClick={() => dispatch({ type: 'open-ask', open: !state.askOpen })}>
           {state.askOpen ? 'Tuck Ask' : 'Pull Ask'}

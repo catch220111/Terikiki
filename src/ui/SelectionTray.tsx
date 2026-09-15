@@ -12,8 +12,7 @@ export function SelectionTray({ state, dispatch }: Props) {
   if (state.selection.cardIds.length === 0) {
     return (
       <div className="selection-tray empty">
-        Gather cards for Ask — click to add, click again to drop, click the desk to clear. Shift also
-        adds.
+        No selection — click a page or note. Shift adds. Ask only sees this gathering.
       </div>
     );
   }

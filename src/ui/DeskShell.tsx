@@ -5,6 +5,7 @@ import { TopRail } from './TopRail.tsx';
 import { SelectionTray } from './SelectionTray.tsx';
 import { TrailStrip } from './TrailStrip.tsx';
 import { MatrixViewport } from './MatrixViewport.tsx';
+import { PageStrip } from './PageStrip.tsx';
 import { AskPanel } from './AskPanel.tsx';
 import { PrintPreview } from './PrintPreview.tsx';
 
@@ -65,6 +66,7 @@ export function DeskShell({
       <TrailStrip state={state} dispatch={dispatch} />
       <SelectionTray state={state} dispatch={dispatch} />
       <MatrixViewport state={state} dispatch={dispatch} onImportNotes={onImportNotes} />
+      <PageStrip state={state} dispatch={dispatch} />
       <AskPanel state={state} dispatch={dispatch} ai={ai} />
       <div className="status-bar">{status}</div>
       {printHtml && <PrintPreview html={printHtml} onClose={onClosePrint} onPrint={onSendToPrinter} />}

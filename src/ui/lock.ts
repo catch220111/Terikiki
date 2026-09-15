@@ -1,6 +1,7 @@
 /**
- * VL v1 lock: flat consumer chrome. Tokens and shell only — Stage 1–4 behavior stays.
- * Walnut / cream / gold / vermillion craft desk is retired from the shell.
+ * VL v1 lock: named tokens + PDF-editor shell. Tokens and chrome only —
+ * Stage 1–4 behavior stays. Walnut / cream / gold / vermillion craft desk
+ * stays retired. Ask stays a Pull/Tuck overlay; the matrix stays the spatial center.
  */
 export const VL_V1_TOKENS = [
   '--bg',
@@ -21,6 +22,12 @@ export const CARD_WIDTH_PX = {
   ai: 168,
 } as const;
 
+export const CARD_RADIUS_PX = {
+  note: 12,
+  pdf: 8,
+  ai: 8,
+} as const;
+
 const CRAFT_CHROME = /Palatino|walnut|washi|--vermillion|#c23b22|#c4a35a|#1b1410|#f4ead4|#f3ead6|note-tape|--rot\b|rotate\(/;
 
 export function missingVlV1Tokens(css: string): string[] {
@@ -39,6 +46,22 @@ export function cardWidthPx(css: string, kind: 'note' | 'pdf' | 'ai'): number | 
   const match = css.match(new RegExp(`\\.paper-card\\.${kind}\\s*\\{[^}]*width:\\s*(\\d+)px`, 's'));
   if (!match?.[1]) return null;
   return Number(match[1]);
+}
+
+export function cardRadiusPx(css: string, kind: 'note' | 'pdf' | 'ai'): number | null {
+  const kindMatch = css.match(new RegExp(`\\.paper-card\\.${kind}\\s*\\{[^}]*border-radius:\\s*(\\d+)px`, 's'));
+  if (kindMatch?.[1]) return Number(kindMatch[1]);
+  const token = css.match(/--radius:\s*(\d+)px/);
+  if (!token?.[1]) return null;
+  return Number(token[1]);
+}
+
+export function cardRadiusInBand(css: string): boolean {
+  for (const kind of ['note', 'pdf', 'ai'] as const) {
+    const radius = cardRadiusPx(css, kind);
+    if (radius === null || radius < 8 || radius > 12) return false;
+  }
+  return true;
 }
 
 /** Handwriting tiles must dominate PDF and AI in the matrix. */
@@ -80,6 +103,19 @@ export function askPanelIsFlatSheet(css: string): boolean {
   );
 }
 
+/** Ask overlays the matrix. It is not a dedicated chat-rail column. */
+export function askRemainsMatrixOverlay(css: string): boolean {
+  const ask = css.match(/\.ask-panel\s*\{([^}]+)\}/);
+  const desk = css.match(/\.desk\s*\{([^}]+)\}/);
+  if (!ask?.[1] || !desk?.[1]) return false;
+  return (
+    /grid-area:\s*matrix/.test(ask[1]) &&
+    /pages/.test(desk[1]) &&
+    /matrix/.test(desk[1]) &&
+    !/ask-rail|chat-rail/.test(css)
+  );
+}
+
 /** Connectors are a thin solid stroke at ~30–40% opacity. */
 export function connectorStrokeOutsideBand(css: string): boolean {
   const mix = css.match(/\.connectors\s+path\s*\{[^}]*color-mix\(in srgb,\s*var\(--accent\)\s+(\d+)%/s);
@@ -94,5 +130,32 @@ export function connectorsAreSelectHoverOnly(connectorSrc: string): boolean {
     connectorSrc.includes('state.selection.cardIds') &&
     connectorSrc.includes('state.hoverCardId') &&
     !connectorSrc.includes('lastTurnCitedIds')
+  );
+}
+
+/** Document toolbar groups files, view, and actions — not a marketing masthead. */
+export function toolbarIsDocumentApp(railSrc: string): boolean {
+  return (
+    railSrc.includes('doc-toolbar') &&
+    railSrc.includes('tool-group') &&
+    railSrc.includes('Open PDF') &&
+    railSrc.includes('Import notes') &&
+    railSrc.includes('Detect marks') &&
+    railSrc.includes('Print') &&
+    railSrc.includes('Pull Ask') &&
+    railSrc.includes('LayerToggles') &&
+    railSrc.includes('set-orientation') &&
+    !railSrc.includes('brand-promise')
+  );
+}
+
+/** Page strip is a notebook navigator: jump via focus, zoom via camera. It does not gather Ask. */
+export function pageStripIsReadingChrome(stripSrc: string): boolean {
+  return (
+    stripSrc.includes("type: 'focus-card'") &&
+    stripSrc.includes("type: 'set-zoom'") &&
+    stripSrc.includes('data-testid="page-strip"') &&
+    !stripSrc.includes("type: 'select-card'") &&
+    !stripSrc.includes("type: 'open-ask'")
   );
 }
