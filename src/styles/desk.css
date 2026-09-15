@@ -813,6 +813,12 @@ img { max-width: 100%; display: block; }
   transform: translateY(0);
   pointer-events: auto;
 }
+.page-filmstrip.static,
+.page-filmstrip.static .page-thumb,
+.page-filmstrip.static .page-thumb img,
+.page-filmstrip.static .page-thumb-ghost {
+  transition: none;
+}
 .page-strip-kicker {
   font-size: 0.58rem;
   letter-spacing: 0.08em;

@@ -13,6 +13,7 @@ import { ConnectorLayer } from './ConnectorLayer.tsx';
 import { PageCluster } from './PageCluster.tsx';
 import { PageFilmstrip } from './PageStrip.tsx';
 import { cameraFramingPage, lerpCamera, PAGE_GLIDE_MS, prefersReducedMotion } from './cameraGlide.ts';
+import { instantPageJump } from './filmstripChrome.ts';
 import { readingColumnCamera, READING_GUTTER_PX } from './cameraFit.ts';
 import type { ViewerTool } from './viewerTool.ts';
 
@@ -80,7 +81,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, tool,
     const card = el.getBoundingClientRect();
     const target = cameraFramingPage(view, card, cameraRef.current, READING_GUTTER_PX);
     const gen = ++glideGen.current;
-    if (prefersReducedMotion()) {
+    if (instantPageJump(prefersReducedMotion())) {
       dispatch({ type: 'set-camera', camera: target });
       return;
     }

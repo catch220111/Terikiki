@@ -3,8 +3,6 @@ import {
   cameraFramingPage,
   currentPageId,
   easeOutCubic,
-  FILMSTRIP_IDLE_MS,
-  filmstripIdleInBand,
   lerpCamera,
   PAGE_GLIDE_MS,
   pageGlideInBand,
@@ -70,11 +68,5 @@ describe('VL v1.2 page glide', () => {
         24,
       ),
     ).toBe('p1');
-  });
-
-  it('keeps filmstrip idle in the 1.2–2s band', () => {
-    expect(filmstripIdleInBand(FILMSTRIP_IDLE_MS)).toBe(true);
-    expect(filmstripIdleInBand(1199)).toBe(false);
-    expect(filmstripIdleInBand(2001)).toBe(false);
   });
 });

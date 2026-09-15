@@ -8,6 +8,7 @@
  * - Horizontal bottom page filmstrip (silhouettes, restrained `--accent`).
  * - Thumb click glides 180–280ms ease-out, no bounce.
  * - Filmstrip idle fade 1.2–2s; prefers-reduced-motion: instant jump, static strip, no animated highlight.
+ * - Valentina: filmstrip is the only saturated navigator; anonymous quiet page stage; handwriting is the only warm accent; no SaaS chrome.
  * - Handwriting size primacy unchanged. Ask stays Pull/Tuck.
  */
 export const VL_V1_TOKENS = [
@@ -166,7 +167,7 @@ export function pageStripIsReadingChrome(stripSrc: string): boolean {
     stripSrc.includes("type: 'set-camera'") &&
     stripSrc.includes('data-testid="page-strip"') &&
     stripSrc.includes('data-testid="zoom-fit-bar"') &&
-    stripSrc.includes('page-filmstrip') &&
+    (stripSrc.includes('page-filmstrip') || stripSrc.includes('filmstripClassName')) &&
     !stripSrc.includes("type: 'select-card'") &&
     !stripSrc.includes("type: 'open-ask'")
   );
@@ -224,7 +225,12 @@ export function vlV11LayoutMissing(
   shellSrc: string,
 ): string[] {
   const missing: string[] = [];
-  if (!css.includes('.page-filmstrip') || !stripSrc.includes('page-filmstrip')) missing.push('thumbnail-rail');
+  if (
+    !css.includes('.page-filmstrip') ||
+    !(stripSrc.includes('page-filmstrip') || stripSrc.includes('filmstripClassName'))
+  ) {
+    missing.push('thumbnail-rail');
+  }
   if (!zoomFitBarIsCompact(css, stripSrc)) missing.push('compact-zoom-fit-bar');
   if (!css.includes('.segmented') || !traySrc.includes('annotation-strip') || !traySrc.includes('segmented')) {
     missing.push('segmented-annotation-strip');
@@ -351,7 +357,7 @@ export function readingColumnIsDefault(
 export function filmstripIsBottomWayfinding(css: string, stripSrc: string): boolean {
   const body = ruleBodyContaining(css, 'page-filmstrip');
   return (
-    stripSrc.includes('page-filmstrip') &&
+    (stripSrc.includes('page-filmstrip') || stripSrc.includes('filmstripClassName')) &&
     stripSrc.includes('data-testid="page-strip"') &&
     stripSrc.includes('page-thumb') &&
     /position:\s*absolute/.test(body) &&
@@ -375,14 +381,15 @@ export function pageGlideIsEaseOut(glideSrc: string, viewportSrc: string): boole
   );
 }
 
-export function filmstripAutoHide(css: string, stripSrc: string, glideSrc: string): boolean {
+export function filmstripAutoHide(css: string, stripSrc: string, chromeSrc: string): boolean {
   const body = ruleBodyContaining(css, 'page-filmstrip');
   return (
-    stripSrc.includes('FILMSTRIP_IDLE_MS') &&
+    chromeSrc.includes('FILMSTRIP_IDLE_MS') &&
+    chromeSrc.includes('createFilmstripIdle') &&
+    stripSrc.includes('createFilmstripIdle') &&
     stripSrc.includes('pointermove') &&
     stripSrc.includes('mousemove') &&
-    stripSrc.includes("'static'") &&
-    glideSrc.includes('FILMSTRIP_IDLE_MS') &&
+    stripSrc.includes('filmstripClassName') &&
     /opacity:\s*0/.test(body) &&
     /translateY\(8px\)/.test(body) &&
     css.includes('150ms') &&
@@ -390,13 +397,27 @@ export function filmstripAutoHide(css: string, stripSrc: string, glideSrc: strin
   );
 }
 
-export function reducedMotionReader(css: string, glideSrc: string, viewportSrc: string): boolean {
+export function reducedMotionReader(
+  css: string,
+  glideSrc: string,
+  viewportSrc: string,
+  chromeSrc: string,
+  stripSrc: string,
+): boolean {
   return (
+    chromeSrc.includes('instantPageJump') &&
+    chromeSrc.includes('filmstripHighlightAnimates') &&
+    chromeSrc.includes('filmstripStaysVisible') &&
+    stripSrc.includes('subscribePrefersReducedMotion') &&
+    stripSrc.includes('data-reduced-motion') &&
     glideSrc.includes('prefersReducedMotion') &&
     viewportSrc.includes('prefersReducedMotion') &&
+    viewportSrc.includes('instantPageJump') &&
+    css.includes('.page-filmstrip.static') &&
     css.includes('@media (prefers-reduced-motion: reduce)') &&
     /prefers-reduced-motion: reduce\)[\s\S]*transition:\s*none/.test(css) &&
-    /prefers-reduced-motion: reduce\)[\s\S]*opacity:\s*1/.test(css)
+    /prefers-reduced-motion: reduce\)[\s\S]*opacity:\s*1/.test(css) &&
+    /prefers-reduced-motion: reduce\)[\s\S]*\.page-thumb[\s\S]*transition:\s*none/.test(css)
   );
 }
 
@@ -408,6 +429,7 @@ export function vlV12ChromiumReaderMissing(
   viewportSrc: string,
   cameraSrc: string,
   glideSrc: string,
+  chromeSrc: string,
 ): string[] {
   const missing: string[] = [];
   if (!readingColumnIsDefault(css, clusterSrc, viewportSrc, cameraSrc) || !stageIsNearWhitePaper(css)) {
@@ -419,8 +441,10 @@ export function vlV12ChromiumReaderMissing(
   if (!pageGlideIsEaseOut(glideSrc, viewportSrc) || !glideSrc.includes('pageGlideInBand')) {
     missing.push('page-glide-ease-out');
   }
-  if (!filmstripAutoHide(css, stripSrc, glideSrc)) missing.push('filmstrip-idle-reveal');
-  if (!reducedMotionReader(css, glideSrc, viewportSrc)) missing.push('reduced-motion-static-strip');
+  if (!filmstripAutoHide(css, stripSrc, chromeSrc)) missing.push('filmstrip-idle-reveal');
+  if (!reducedMotionReader(css, glideSrc, viewportSrc, chromeSrc, stripSrc)) {
+    missing.push('reduced-motion-static-strip');
+  }
   return missing;
 }
 

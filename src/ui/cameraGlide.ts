@@ -3,18 +3,8 @@ import type { Camera } from '../types/domain.ts';
 /** CLV lane — thumb → page glide. VL v1.2: 180–280ms ease-out, no overshoot. */
 export const PAGE_GLIDE_MS = 220;
 
-/** Filmstrip idle hide. VL v1.2: 1.2–2s. */
-export const FILMSTRIP_IDLE_MS = 1600;
-
-/** Filmstrip fade/slide. Fast and subtle only. */
-export const FILMSTRIP_FADE_MS = 150;
-
 export function pageGlideInBand(ms: number): boolean {
   return ms >= 180 && ms <= 280;
-}
-
-export function filmstripIdleInBand(ms: number): boolean {
-  return ms >= 1200 && ms <= 2000;
 }
 
 export function easeOutCubic(t: number): number {

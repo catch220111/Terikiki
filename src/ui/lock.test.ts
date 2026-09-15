@@ -10,6 +10,7 @@ import viewportSrc from './MatrixViewport.tsx?raw';
 import clusterSrc from './PageCluster.tsx?raw';
 import cameraSrc from './cameraFit.ts?raw';
 import glideSrc from './cameraGlide.ts?raw';
+import chromeSrc from './filmstripChrome.ts?raw';
 import {
   askPanelIsFlatSheet,
   askRemainsMatrixOverlay,
@@ -23,6 +24,7 @@ import {
   connectorsAreSelectHoverOnly,
   craftChromeLeaks,
   dualSurfaceRoles,
+  filmstripAutoHide,
   filmstripIsBottomWayfinding,
   handwritingHasSizePrimacy,
   missingVlV1Tokens,
@@ -116,8 +118,9 @@ describe('VL v1.1 implementable cut', () => {
     expect(readingColumnIsDefault(css, clusterSrc, viewportSrc, cameraSrc)).toBe(true);
     expect(filmstripIsBottomWayfinding(css, stripSrc)).toBe(true);
     expect(pageGlideIsEaseOut(glideSrc, viewportSrc)).toBe(true);
-    expect(reducedMotionReader(css, glideSrc, viewportSrc)).toBe(true);
-    expect(vlV12ChromiumReaderMissing(css, stripSrc, clusterSrc, viewportSrc, cameraSrc, glideSrc)).toEqual([]);
+    expect(filmstripAutoHide(css, stripSrc, chromeSrc)).toBe(true);
+    expect(reducedMotionReader(css, glideSrc, viewportSrc, chromeSrc, stripSrc)).toBe(true);
+    expect(vlV12ChromiumReaderMissing(css, stripSrc, clusterSrc, viewportSrc, cameraSrc, glideSrc, chromeSrc)).toEqual([]);
     expect(handwritingHasSizePrimacy(css)).toBe(true);
     expect(galvezJamesMissing(traySrc, railSrc, stripSrc, viewportSrc, css)).toEqual([]);
     expect(css).not.toMatch(/\.thumb-rail/);

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type Dispatch } from 'react';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { fitPageCamera, fitWidthCamera, matrixViewportSize, READING_GUTTER_PX } from './cameraFit.ts';
+import { currentPageId, prefersReducedMotion } from './cameraGlide.ts';
 import {
-  currentPageId,
-  FILMSTRIP_IDLE_MS,
-  prefersReducedMotion,
-} from './cameraGlide.ts';
+  createFilmstripIdle,
+  filmstripClassName,
+  subscribePrefersReducedMotion,
+  type FilmstripIdle,
+} from './filmstripChrome.ts';
 
 interface Props {
   state: DeskState;
@@ -33,54 +35,50 @@ function readingPageId(state: DeskState): string | null {
 }
 
 export function PageFilmstrip({ state, dispatch }: Props) {
-  const reduced = prefersReducedMotion();
+  const [reduced, setReduced] = useState(prefersReducedMotion);
   const [revealed, setRevealed] = useState(true);
   const [currentId, setCurrentId] = useState<string | null>(state.focusCardId);
-  const idleRef = useRef(0);
+  const idleRef = useRef<FilmstripIdle | null>(null);
 
   const pagesReady = state.pages.length > 0 && state.pages.every((page) => Boolean(page.imageUrl));
+
+  useEffect(() => subscribePrefersReducedMotion(setReduced), []);
 
   useEffect(() => {
     setCurrentId(readingPageId(state));
   }, [state.camera, state.focusCardId, state.pages, state.revealNonce]);
 
   useEffect(() => {
-    if (reduced) {
-      setRevealed(true);
-      return;
+    const idle = createFilmstripIdle({
+      reducedMotion: () => reduced,
+      onChange: setRevealed,
+    });
+    idleRef.current = idle;
+    setRevealed(reduced ? true : idle.revealed);
+    if (!reduced) idle.bump();
+    function onPointer() {
+      idle.bump();
     }
-    function bump() {
-      setRevealed(true);
-      window.clearTimeout(idleRef.current);
-      idleRef.current = window.setTimeout(() => setRevealed(false), FILMSTRIP_IDLE_MS);
-    }
-    bump();
-    window.addEventListener('pointermove', bump);
-    window.addEventListener('mousemove', bump);
+    window.addEventListener('pointermove', onPointer);
+    window.addEventListener('mousemove', onPointer);
     return () => {
-      window.removeEventListener('pointermove', bump);
-      window.removeEventListener('mousemove', bump);
-      window.clearTimeout(idleRef.current);
+      window.removeEventListener('pointermove', onPointer);
+      window.removeEventListener('mousemove', onPointer);
+      idle.dispose();
+      idleRef.current = null;
     };
   }, [reduced, pagesReady]);
 
   const pages = state.pages;
   return (
     <nav
-      className={`page-filmstrip ${revealed || reduced ? 'revealed' : ''} ${reduced ? 'static' : ''}`}
+      className={filmstripClassName(revealed, reduced)}
       data-testid="page-strip"
       data-reduced-motion={reduced ? 'true' : undefined}
+      data-revealed={revealed || reduced ? 'true' : 'false'}
       aria-label="Page filmstrip"
-      onPointerEnter={() => {
-        if (reduced) return;
-        setRevealed(true);
-        window.clearTimeout(idleRef.current);
-      }}
-      onPointerLeave={() => {
-        if (reduced) return;
-        window.clearTimeout(idleRef.current);
-        idleRef.current = window.setTimeout(() => setRevealed(false), FILMSTRIP_IDLE_MS);
-      }}
+      onPointerEnter={() => idleRef.current?.hold()}
+      onPointerLeave={() => idleRef.current?.armIdle()}
     >
       {pages.length === 0 && <span className="page-strip-empty">Open a PDF</span>}
       {pages.map((page) => {
@@ -97,11 +95,7 @@ export function PageFilmstrip({ state, dispatch }: Props) {
             aria-current={current ? 'page' : undefined}
             title={`Jump to page ${page.pageIndex + 1}${page.title ? ` · ${page.title}` : ''}`}
             onClick={() => {
-              window.clearTimeout(idleRef.current);
-              if (!reduced) {
-                setRevealed(true);
-                idleRef.current = window.setTimeout(() => setRevealed(false), FILMSTRIP_IDLE_MS);
-              }
+              idleRef.current?.bump();
               dispatch({ type: 'focus-card', cardId: page.id });
             }}
           >
