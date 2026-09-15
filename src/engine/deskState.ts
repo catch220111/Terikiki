@@ -57,7 +57,7 @@ export const initialDeskState: DeskState = {
   hoverCardId: null,
   focusCardId: null,
   revealNonce: 0,
-  askOpen: true,
+  askOpen: false,
   anchorDraft: null,
 };
 

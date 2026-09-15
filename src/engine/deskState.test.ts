@@ -43,6 +43,14 @@ function hydrated() {
 }
 
 describe('deskReducer', () => {
+  it('starts with Ask tucked so the matrix is the spatial center', () => {
+    expect(initialDeskState.askOpen).toBe(false);
+    const opened = deskReducer(initialDeskState, { type: 'open-ask', open: true });
+    expect(opened.askOpen).toBe(true);
+    const tucked = deskReducer(opened, { type: 'open-ask', open: false });
+    expect(tucked.askOpen).toBe(false);
+  });
+
   it('clicking another card gathers it instead of replacing the set', () => {
     let state = hydrated();
     const a = state.pages[0]!.id;
@@ -159,6 +167,7 @@ describe('deskReducer', () => {
       },
     });
     expect(state.aiTurns[0]?.selectionCardIds).toEqual([a]);
+    expect(state.askOpen).toBe(true);
     expect(state.trail.some((e) => e.fromAi && e.kind === 'ai_explanation')).toBe(true);
   });
 

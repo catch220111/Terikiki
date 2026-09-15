@@ -32,6 +32,14 @@ export function SelectionTray({ state, dispatch }: Props) {
           </button>
         );
       })}
+      <button
+        type="button"
+        className="ink-btn"
+        data-testid="pull-ask"
+        onClick={() => dispatch({ type: 'open-ask', open: !state.askOpen })}
+      >
+        {state.askOpen ? 'Tuck Ask' : 'Pull Ask'}
+      </button>
     </div>
   );
 }

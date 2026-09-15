@@ -68,24 +68,24 @@ export function AskPanel({ state, dispatch, ai }: Props) {
     });
   }
 
-  if (!state.askOpen) {
-    return (
-      <aside className="ask-panel">
-        <div className="ask-body">
-          <h2>Ask</h2>
-          <p className="ask-empty">Closed. Open Ask from the rail when you have gathered paper.</p>
-        </div>
-      </aside>
-    );
-  }
+  if (!state.askOpen) return null;
 
   return (
-    <aside className="ask-panel">
-      <div className="ask-body">
+    <aside className="ask-panel" data-testid="ask-tray" aria-label="Ask tray">
+      <div className="ask-head">
         <h2>Ask only what you gathered</h2>
+        <button
+          type="button"
+          className="tiny"
+          onClick={() => dispatch({ type: 'open-ask', open: false })}
+        >
+          Tuck
+        </button>
+      </div>
+      <div className="ask-body">
         {gathered.length === 0 ? (
           <p className="ask-empty">
-            Shift-select or click pages and notes. The tutor is blind to everything else — no silent corpus search.
+            Gather pages and notes first. The tutor is blind to everything else — no silent corpus search.
           </p>
         ) : (
           <p className="ask-empty">{gathered.length} card(s) in context. Citations will jump back to those cards.</p>

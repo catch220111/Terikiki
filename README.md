@@ -10,9 +10,9 @@ Vite 8 + React 19 + TypeScript + `pdfjs-dist`. Node `>=22.12.0`. Kept as-is; the
 
 ## Boarding MVP (this cut)
 
-1. **Matrix shell** — pan/zoom desk, PDF pages via pdf.js, H/V orientation, origin/type layer toggles (hide without deleting position), Shift+multi-select chip tray, vermillion connectors only on select/hover.
-2. **Note import** — image notes, manual pin to a page or a rectangle, matcher that may only **suggest / accept / reject / correct**. Nothing auto-commits.
-3. **Selection-aware Ask** — pluggable `AiClient` (mock, no API keys). The tutor sees only the explicit selection and cites those cards.
+1. **Matrix shell** — pan/zoom desk, PDF pages via pdf.js, H/V orientation, origin/type layer toggles (hide without deleting position), click-to-gather / Shift-add chip tray, thin `--thread` connectors only on select/hover.
+2. **Note import** — image notes dominate the matrix; manual pin to a page or a rectangle; matcher that may only **suggest / accept / reject / correct**. Nothing auto-commits.
+3. **Selection-aware Ask** — a pulled paper tray (not a chat rail). Pluggable `AiClient` (mock, no API keys). The tutor sees only the explicit selection and cites those cards.
 4. **Printable desk** + thin **thinking trail** + handwritten command-mark stubs (`?`, `*`, box, circle, arrow, `R`, `EXPLAIN`) with detect → confirm.
 
 ## Demo
@@ -30,9 +30,9 @@ Walkthrough:
 
 1. Pan the walnut desk; Ctrl/Cmd+wheel to zoom. Flip **PDF ↓ / PDF →**.
 2. Toggle layers. Hidden layers keep their slot.
-3. Shift-click a page and a note — the washi-tape **AI context** tray is the only prompt context.
+3. Click a page and a note — the washi-tape **AI context** tray is the only prompt context.
 4. On a loose note, **Accept** a match, or **Reject**, or **Correct** (then click a page / drag a region). Or **Pin to page / Pin to region** yourself.
-5. **Ask** about the gathered cards. Citation stamps jump back to those cards. Optionally pin the answer onto the desk (labeled AI).
+5. **Pull Ask** from the tray (or Escape / **Tuck** to put it away). Citation stamps jump back to those cards. Optionally pin the answer onto the desk (labeled AI, quieter than handwriting).
 6. **Detect marks**, then Confirm / Dismiss. Confirmed glyphs sit on the note.
 7. **Print desk** for one printable sheet (pages, pinned notes, trail, confirmed marks).
 

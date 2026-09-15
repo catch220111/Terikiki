@@ -21,7 +21,7 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
   return (
     <div
       data-card={note.id}
-      className={`paper-card ${selected ? 'selected' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
+      className={`paper-card note ${selected ? 'selected' : ''} ${selected || hovered ? 'connector-affordance' : ''}`}
       onMouseEnter={() => dispatch({ type: 'set-hover', cardId: note.id })}
       onMouseLeave={() => dispatch({ type: 'set-hover', cardId: null })}
       onPointerDown={(e) => e.stopPropagation()}

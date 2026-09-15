@@ -36,7 +36,7 @@ export function TopRail({ state, dispatch, onImportPdf, onImportNote, onDetectMa
         <InkBtn onClick={onDetectMarks}>Detect marks</InkBtn>
         <InkBtn onClick={onExport}>Print desk</InkBtn>
         <InkBtn active={state.askOpen} onClick={() => dispatch({ type: 'open-ask', open: !state.askOpen })}>
-          Ask
+          {state.askOpen ? 'Tuck Ask' : 'Pull Ask'}
         </InkBtn>
       </div>
     </header>

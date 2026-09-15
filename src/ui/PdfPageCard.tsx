@@ -92,7 +92,7 @@ export function PdfPageCard({ page, state, dispatch }: Props) {
       onMouseEnter={() => dispatch({ type: 'set-hover', cardId: page.id })}
       onMouseLeave={() => dispatch({ type: 'set-hover', cardId: null })}
     >
-      <div className="card-kicker">PDF · p{page.pageIndex + 1}</div>
+      <div className="card-kicker">Printed · p{page.pageIndex + 1}</div>
       {visible ? (
         <div style={{ position: 'relative' }}>
           {page.imageUrl ? (

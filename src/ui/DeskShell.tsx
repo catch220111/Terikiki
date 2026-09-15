@@ -30,11 +30,16 @@ export function DeskShell({
 }: Props) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') dispatch({ type: 'cancel-anchor' });
+      if (e.key !== 'Escape') return;
+      if (state.anchorDraft) {
+        dispatch({ type: 'cancel-anchor' });
+        return;
+      }
+      if (state.askOpen) dispatch({ type: 'open-ask', open: false });
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [dispatch]);
+  }, [dispatch, state.anchorDraft, state.askOpen]);
 
   return (
     <div className="desk">
