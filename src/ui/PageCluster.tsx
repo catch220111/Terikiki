@@ -30,7 +30,7 @@ export function PageCluster({ state, dispatch }: Props) {
     <>
       {loose.length > 0 && (
         <section className="cluster loose">
-          <div className="cluster-label">Loose leaves</div>
+          <div className="cluster-label">Unpinned</div>
           <div className="hang-axis">
             {loose.map((card) => (
               <HangCard key={card.id} card={card} state={state} dispatch={dispatch} />

@@ -1,5 +1,4 @@
 import { useLayoutEffect, useState } from 'react';
-import { lastTurnCitedIds } from '../ai/context.ts';
 import type { DeskState } from '../engine/deskState.ts';
 import { cardById } from '../engine/selectors.ts';
 
@@ -34,7 +33,6 @@ export function ConnectorLayer({ state, surface }: Props) {
     }
     const active = new Set<string>(state.selection.cardIds);
     if (state.hoverCardId) active.add(state.hoverCardId);
-    for (const id of lastTurnCitedIds(state)) active.add(id);
     if (active.size === 0) {
       setLines([]);
       return;
@@ -68,7 +66,7 @@ export function ConnectorLayer({ state, surface }: Props) {
       });
     }
     setLines(next);
-  }, [state.anchors, state.aiTurns, state.askOpen, state.camera.zoom, state.hoverCardId, state.pages, state.selection.cardIds, surface]);
+  }, [state.anchors, state.camera.zoom, state.hoverCardId, state.pages, state.selection.cardIds, surface]);
 
   if (lines.length === 0) return null;
   return (

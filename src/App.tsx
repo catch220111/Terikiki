@@ -116,7 +116,7 @@ function DeskApp() {
     }
     if (imported > 0) {
       setStatus(
-        `Imported ${imported} handwritten ${imported === 1 ? 'leaf' : 'leaves'} — stub suggestions stay pending until you accept, reject, or correct.`,
+        `Imported ${imported} handwritten ${imported === 1 ? 'note' : 'notes'} — stub suggestions stay pending until you accept, reject, or correct.`,
       );
     } else if (skipped.length > 0 && !pdfs[0]) {
       setStatus('Drop a photographed or scanned note image (PNG, JPG, WebP, SVG).');

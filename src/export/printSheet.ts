@@ -9,84 +9,86 @@ const PRINT_STYLES = `
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    font-family: Palatino, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-    color: #1a1714;
-    background: #f4ead4;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    color: #1d1d1f;
+    background: #f5f5f7;
     margin: 0;
+    letter-spacing: -0.011em;
   }
-  .packet { padding: 28px 32px 48px; }
+  .packet { padding: 32px 36px 52px; }
   .wordmark {
-    font-family: Palatino, "Iowan Old Style", Georgia, serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 1.85rem;
-    letter-spacing: 0.01em;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1.45rem;
+    letter-spacing: -0.04em;
     margin: 0;
-    color: #1a1714;
+    color: #1d1d1f;
   }
   .promise {
-    margin: 0.15rem 0 0;
-    font-size: 0.72rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #8a6a28;
+    margin: 0.2rem 0 0;
+    font-size: 0.78rem;
+    color: #6e6e73;
   }
   .sheet-kicker {
-    margin: 0.85rem 0 0;
-    font-size: 0.82rem;
-    color: #6b655c;
+    margin: 0.95rem 0 0;
+    font-size: 0.8rem;
+    color: #86868b;
   }
   .sheet {
-    margin-top: 1.6rem;
-    padding-top: 1.1rem;
-    border-top: 1px dashed #cbbfa8;
+    margin-top: 1.7rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid #e5e5ea;
     break-inside: avoid;
   }
   .page-sheet { break-inside: avoid; }
   .working { break-inside: avoid; }
   h2 {
     font-size: 1.05rem;
-    margin: 0 0 0.85rem;
+    margin: 0 0 0.9rem;
     font-weight: 600;
+    letter-spacing: -0.03em;
   }
   .spread {
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(12rem, 0.85fr);
-    gap: 1.1rem;
+    gap: 1.15rem;
     align-items: start;
   }
   .printed {
-    background: #efe6d2;
-    border: 1px solid #d7cbb3;
-    padding: 0.7rem 0.75rem 0.85rem;
+    background: #fff;
+    border: 1px solid #e5e5ea;
+    border-radius: 12px;
+    padding: 0.75rem 0.8rem 0.9rem;
   }
   .printed img {
     width: 100%;
     max-height: 420px;
     object-fit: contain;
-    background: #fffdf6;
-    border: 1px solid #cbbfa8;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 8px;
   }
   .printed .excerpt {
     margin: 0.65rem 0 0;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     line-height: 1.45;
     white-space: pre-wrap;
+    color: #3a3a3c;
   }
   .kicker {
-    font-size: 0.64rem;
-    letter-spacing: 0.14em;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #7a6a55;
+    color: #8e8e93;
     margin: 0 0 0.4rem;
+    font-weight: 600;
   }
   .margin {
     min-height: 12rem;
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.45), transparent 24%),
-      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(90,70,40,0.14) 28px),
-      #f7f1e4;
-    border-left: 3px solid #27563b;
+    background: #f4fffc;
+    border: 1px solid color-mix(in srgb, #32d4c8 22%, #e5e5ea);
+    border-left: 3px solid #32d4c8;
+    border-radius: 12px;
     padding: 0.75rem 0.8rem 1rem;
   }
   .hang {
@@ -98,12 +100,13 @@ const PRINT_STYLES = `
   .hang h3 {
     margin: 0;
     font-size: 1rem;
+    letter-spacing: -0.02em;
   }
-  .hang p { margin: 0.3rem 0 0; font-style: italic; font-size: 0.88rem; color: #5c4c3c; }
-  .hang.ai { border-left: 2px solid #24356b; padding-left: 0.55rem; opacity: 0.9; }
+  .hang p { margin: 0.3rem 0 0; font-size: 0.86rem; color: #6e6e73; }
+  .hang.ai { border-left: 2px solid #0a84ff; padding-left: 0.55rem; opacity: 0.92; }
   .hang.ai h3 { font-size: 0.88rem; }
-  .marks { color: #c23b22; font-family: "Segoe Script", "Bradley Hand", "Apple Chancery", cursive; font-style: normal; }
-  .blank { color: #8a7b66; font-style: italic; font-size: 0.9rem; }
+  .marks { color: #ff453a; font-family: "Segoe Script", "Bradley Hand", "Apple Chancery", cursive; font-style: normal; }
+  .blank { color: #8e8e93; font-size: 0.88rem; }
   .trail-strip {
     display: flex;
     flex-wrap: wrap;
@@ -111,8 +114,8 @@ const PRINT_STYLES = `
     list-style: none;
     margin: 1.15rem 0 0;
     padding: 0.55rem 0 0;
-    border-top: 1px dashed #cbbfa8;
-    font-size: 0.78rem;
+    border-top: 1px solid #e5e5ea;
+    font-size: 0.76rem;
   }
   .trail-strip li {
     display: inline-flex;
@@ -121,16 +124,17 @@ const PRINT_STYLES = `
     margin: 0;
     white-space: nowrap;
   }
-  .trail-strip .idx { color: #8a6a28; font-size: 0.68rem; }
+  .trail-strip .idx { color: #8e8e93; font-size: 0.68rem; }
   .trail-kicker {
-    font-size: 0.64rem;
-    letter-spacing: 0.14em;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #7a6a55;
+    color: #8e8e93;
     margin: 1.15rem 0 0;
+    font-weight: 600;
   }
-  .voice-ink { color: #27563b; font-style: italic; }
-  .voice-ai { color: #24356b; font-style: italic; }
+  .voice-ink { color: #0f766e; }
+  .voice-ai { color: #0a84ff; }
   @media print {
     body { background: white; }
     .packet { padding: 0; }
@@ -163,7 +167,7 @@ export function buildPrintableHtml(state: DeskState): string {
     </div>
     <aside class="margin">
       <p class="kicker">Handwritten margin</p>
-      ${notes || '<p class="blank">Blank margin — pin a leaf to hang notes here.</p>'}
+      ${notes || '<p class="blank">Blank margin — pin a note to hang it here.</p>'}
     </aside>
   </div>
 </section>`;
@@ -196,14 +200,14 @@ export function buildPrintableHtml(state: DeskState): string {
 <body>
   <article class="packet" data-testid="print-sheet">
     <header>
-      <h1 class="wordmark">terikiki</h1>
+      <h1 class="wordmark">Terikiki</h1>
       <p class="promise">Write on paper. Keep everything connected.</p>
       <p class="sheet-kicker">Print sheet · ${escapeHtml(title)}</p>
     </header>
     ${pageBlocks || '<p class="blank">No PDF pages on this desk.</p>'}
     <section class="sheet working">
-      <p class="kicker">Loose leaves</p>
-      ${loose || '<p class="blank">No loose leaves — every note is hanging in a printed margin.</p>'}
+      <p class="kicker">Unpinned notes</p>
+      ${loose || '<p class="blank">No unpinned notes — every note is hanging in a printed margin.</p>'}
     </section>
     ${
       strip

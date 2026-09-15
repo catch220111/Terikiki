@@ -1,6 +1,6 @@
 import type { Dispatch } from 'react';
 import { isCardCited } from '../ai/context.ts';
-import type { AiCard, NoteCard as Note } from '../types/domain.ts';
+import { isLayerVisible, type AiCard, type NoteCard as Note } from '../types/domain.ts';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { anchorsForCard, confirmedMarksFor, isCardVisible, pendingSuggestionsFor } from '../engine/selectors.ts';
 import { describeTarget } from '../engine/anchors.ts';
@@ -18,6 +18,8 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
   const hovered = state.hoverCardId === note.id;
   const cited = isCardCited(state, note.id);
   const visible = isCardVisible(state, note);
+  const showTranscript = isLayerVisible(state.layers, 'student', 'transcription');
+  const showQuestions = isLayerVisible(state.layers, 'student', 'questions');
   const pending = pendingSuggestionsFor(state, note.id);
   const marks = confirmedMarksFor(state, note.id);
   const pins = anchorsForCard(state, note.id);
@@ -43,7 +45,6 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
       onMouseLeave={() => dispatch({ type: 'set-hover', cardId: null })}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      <div className="note-tape" aria-hidden="true" />
       <button
         type="button"
         className="note-face"
@@ -56,14 +57,21 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
           <div className="ghost">Handwriting layer off</div>
         )}
         <strong className="note-title">{note.title}</strong>
-        {note.caption && <div className="note-caption">{note.caption}</div>}
-        <div className="note-marks">
-          {marks.map((mark) => (
-            <span key={mark.id} className="glyph">
-              {mark.glyph}
-            </span>
-          ))}
-        </div>
+        {showTranscript && note.caption && (
+          <div className="note-transcript">
+            <div className="card-kicker transcript">Transcription</div>
+            <div className="note-caption">{note.caption}</div>
+          </div>
+        )}
+        {showQuestions && (
+          <div className="note-marks">
+            {marks.map((mark) => (
+              <span key={mark.id} className="glyph">
+                {mark.glyph}
+              </span>
+            ))}
+          </div>
+        )}
       </button>
       {pins.length > 0 && (
         <div className="note-pins">
@@ -171,7 +179,7 @@ export function AiCardView({
       onMouseLeave={() => dispatch({ type: 'set-hover', cardId: null })}
     >
       <div className="card-kicker">AI · labeled as AI</div>
-      {visible ? <p style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: '0.8rem' }}>{card.body}</p> : <div className="ghost">AI layer off</div>}
+      {visible ? <p className="ai-body">{card.body}</p> : <div className="ghost">AI layer off</div>}
     </button>
   );
 }

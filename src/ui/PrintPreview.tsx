@@ -14,7 +14,7 @@ export function PrintPreview({ html, onClose, onPrint }: Props) {
       <div className="print-frame">
         <header className="print-toolbar">
           <div>
-            <span className="print-wordmark">terikiki</span>
+            <span className="print-wordmark">Terikiki</span>
             <span className="print-toolbar-kicker">Print sheet</span>
           </div>
           <div className="print-toolbar-actions">
