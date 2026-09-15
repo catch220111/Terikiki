@@ -6,14 +6,20 @@ import { COMMAND_MARK_IF_CONFIRMED, COMMAND_MARK_MEANING } from '../types/domain
 interface Props {
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
+  onTuck: () => void;
 }
 
-export function TrailStrip({ state, dispatch }: Props) {
+export function TrailStrip({ state, dispatch, onTuck }: Props) {
   const detected = state.marks.filter((m) => m.status === 'detected');
   const trail = orderedTrail(state.trail);
   return (
-    <aside className="margin-trail" data-testid="thinking-trail">
-      <h2>Thinking trail</h2>
+    <aside className="trail-drawer" data-testid="thinking-trail" aria-label="Thinking trail">
+      <div className="ask-head">
+        <h2>Thinking trail</h2>
+        <button type="button" className="tiny" onClick={onTuck}>
+          Tuck
+        </button>
+      </div>
       <ol className="trail-list">
         {trail.length === 0 && <li className="trail-item">Empty. Import a note to start.</li>}
         {trail.map((event) => {

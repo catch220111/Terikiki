@@ -4,6 +4,8 @@ import noteSrc from './NoteCard.tsx?raw';
 import connectorSrc from './ConnectorLayer.tsx?raw';
 import railSrc from './TopRail.tsx?raw';
 import stripSrc from './PageStrip.tsx?raw';
+import traySrc from './SelectionTray.tsx?raw';
+import shellSrc from './DeskShell.tsx?raw';
 import {
   askPanelIsFlatSheet,
   askRemainsMatrixOverlay,
@@ -16,11 +18,15 @@ import {
   connectorStrokeOutsideBand,
   connectorsAreSelectHoverOnly,
   craftChromeLeaks,
+  dualSurfaceRoles,
   handwritingHasSizePrimacy,
   missingVlV1Tokens,
   pageStripIsReadingChrome,
+  pinChromeIsNotOnLeaves,
+  pinDrivenByActiveTool,
   scriptUsedOutsideGlyphs,
   toolbarIsDocumentApp,
+  trailIsCollapsedInspector,
 } from './lock.ts';
 
 const { readFileSync } = await import('fs');
@@ -57,11 +63,17 @@ describe('VL v1 chrome lock', () => {
     expect(css).not.toMatch(/stroke-dasharray/);
   });
 
-  it('stages a PDF-editor shell: denser toolbar, page strip, matrix still center', () => {
+  it('stages a PDF-editor shell with VL v1.1 dual surface and document chrome', () => {
     expect(toolbarIsDocumentApp(railSrc)).toBe(true);
     expect(pageStripIsReadingChrome(stripSrc)).toBe(true);
+    expect(dualSurfaceRoles(css)).toBe(true);
+    expect(trailIsCollapsedInspector(css, shellSrc)).toBe(true);
+    expect(pinChromeIsNotOnLeaves(noteSrc)).toBe(true);
+    expect(pinDrivenByActiveTool(traySrc)).toBe(true);
     expect(css).toMatch(/\.doc-toolbar/);
-    expect(css).toMatch(/\.page-strip/);
+    expect(css).toMatch(/\.thumb-rail/);
+    expect(css).toMatch(/\.zoom-fit-bar/);
+    expect(css).toMatch(/\.segmented/);
     expect(css).not.toMatch(/brand-promise/);
   });
 });

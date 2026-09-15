@@ -7,13 +7,15 @@ interface Props {
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
   onImportNotes: (files: readonly File[]) => void;
+  onArmPin: (noteId: string, mode: 'page' | 'region', suggestionId?: string) => void;
+  toolHint: string | null;
 }
 
 function isInteractive(target: EventTarget | null): boolean {
   return target instanceof Element && Boolean(target.closest('button, input, textarea, label, [data-card]'));
 }
 
-export function MatrixViewport({ state, dispatch, onImportNotes }: Props) {
+export function MatrixViewport({ state, dispatch, onImportNotes, onArmPin, toolHint }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [surface, setSurface] = useState<HTMLDivElement | null>(null);
@@ -127,6 +129,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes }: Props) {
               : 'Drag a rectangle on the page. Esc cancels.'}
         </div>
       )}
+      {!pinning && toolHint && <div className="banner">{toolHint}</div>}
       {dropOver && !pinning && (
         <div className="banner">Drop photographed or scanned notes onto the desk.</div>
       )}
@@ -135,7 +138,7 @@ export function MatrixViewport({ state, dispatch, onImportNotes }: Props) {
         className={`matrix-surface orientation-${state.orientation}`}
         style={{ transform: `translate(${state.camera.x}px, ${state.camera.y}px) scale(${state.camera.zoom})` }}
       >
-        <PageCluster state={state} dispatch={dispatch} />
+        <PageCluster state={state} dispatch={dispatch} onArmPin={onArmPin} />
         <ConnectorLayer state={state} surface={surface} />
         {state.pages.length === 0 && <div className="ghost">Open a PDF to populate the matrix.</div>}
       </div>

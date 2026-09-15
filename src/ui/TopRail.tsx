@@ -5,13 +5,24 @@ import { InkBtn, LayerToggles, FileBtn } from './LayerToggles.tsx';
 interface Props {
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
+  inspectorOpen: boolean;
+  onToggleInspector: () => void;
   onImportPdf: (file: File) => void;
   onImportNotes: (files: readonly File[]) => void;
   onDetectMarks: () => void;
   onExport: () => void;
 }
 
-export function TopRail({ state, dispatch, onImportPdf, onImportNotes, onDetectMarks, onExport }: Props) {
+export function TopRail({
+  state,
+  dispatch,
+  inspectorOpen,
+  onToggleInspector,
+  onImportPdf,
+  onImportNotes,
+  onDetectMarks,
+  onExport,
+}: Props) {
   const vertical = state.orientation === 'vertical';
   const pageCount = state.document?.pageCount ?? state.pages.length;
   return (
@@ -57,6 +68,9 @@ export function TopRail({ state, dispatch, onImportPdf, onImportNotes, onDetectM
         </InkBtn>
         <InkBtn testId="print-desk" onClick={onExport}>
           Print
+        </InkBtn>
+        <InkBtn active={inspectorOpen} testId="toggle-trail" onClick={onToggleInspector}>
+          Trail
         </InkBtn>
         <InkBtn active={state.askOpen} onClick={() => dispatch({ type: 'open-ask', open: !state.askOpen })}>
           {state.askOpen ? 'Tuck Ask' : 'Pull Ask'}

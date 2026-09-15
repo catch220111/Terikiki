@@ -110,8 +110,9 @@ export function askRemainsMatrixOverlay(css: string): boolean {
   if (!ask?.[1] || !desk?.[1]) return false;
   return (
     /grid-area:\s*matrix/.test(ask[1]) &&
-    /pages/.test(desk[1]) &&
+    /thumbs/.test(desk[1]) &&
     /matrix/.test(desk[1]) &&
+    /zoom/.test(desk[1]) &&
     !/ask-rail|chat-rail/.test(css)
   );
 }
@@ -154,8 +155,47 @@ export function pageStripIsReadingChrome(stripSrc: string): boolean {
   return (
     stripSrc.includes("type: 'focus-card'") &&
     stripSrc.includes("type: 'set-zoom'") &&
+    stripSrc.includes("type: 'set-camera'") &&
     stripSrc.includes('data-testid="page-strip"') &&
+    stripSrc.includes('data-testid="zoom-fit-bar"') &&
     !stripSrc.includes("type: 'select-card'") &&
     !stripSrc.includes("type: 'open-ask'")
+  );
+}
+
+/** Tool chrome stays --surface; the page stage uses a lighter --stage paper. */
+export function dualSurfaceRoles(css: string): boolean {
+  return (
+    /--stage:\s*#/.test(css) &&
+    /matrix-viewport[\s\S]*var\(--stage\)/.test(css) &&
+    /doc-toolbar[\s\S]*var\(--surface\)/.test(css) &&
+    !/#f4ead4|#f3ead6|#1b1410/.test(css)
+  );
+}
+
+/** Trail/marks live in a tucked overlay drawer, not a permanent notes column. */
+export function trailIsCollapsedInspector(css: string, shellSrc: string): boolean {
+  const desk = css.match(/\.desk\s*\{([^}]+)\}/);
+  return (
+    Boolean(desk?.[1]?.includes('thumbs')) &&
+    !/grid-template-areas:[\s\S]*notes/.test(desk?.[1] ?? '') &&
+    css.includes('.trail-drawer') &&
+    /grid-area:\s*matrix/.test(css.match(/\.trail-drawer\s*\{([^}]+)\}/)?.[1] ?? '') &&
+    shellSrc.includes('inspectorOpen') &&
+    shellSrc.includes('TrailStrip')
+  );
+}
+
+/** Manual pin is an active viewer tool — not a form on every note leaf. */
+export function pinChromeIsNotOnLeaves(noteSrc: string): boolean {
+  return !noteSrc.includes('pin-to-page') && !noteSrc.includes('pin-to-region') && !noteSrc.includes('pin-actions');
+}
+
+export function pinDrivenByActiveTool(stripSrc: string): boolean {
+  return (
+    stripSrc.includes('pin-to-page') &&
+    stripSrc.includes('pin-region') &&
+    stripSrc.includes('segmented') &&
+    stripSrc.includes('ViewerTool')
   );
 }

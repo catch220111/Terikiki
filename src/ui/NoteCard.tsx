@@ -11,9 +11,10 @@ interface NoteProps {
   note: Note;
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
+  onArmPin: (noteId: string, mode: 'page' | 'region', suggestionId?: string) => void;
 }
 
-export function NoteCard({ note, state, dispatch }: NoteProps) {
+export function NoteCard({ note, state, dispatch, onArmPin }: NoteProps) {
   const selected = state.selection.cardIds.includes(note.id);
   const hovered = state.hoverCardId === note.id;
   const cited = isCardCited(state, note.id);
@@ -23,17 +24,6 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
   const pending = pendingSuggestionsFor(state, note.id);
   const marks = confirmedMarksFor(state, note.id);
   const pins = anchorsForCard(state, note.id);
-  const drafting = state.anchorDraft?.noteId === note.id ? state.anchorDraft : null;
-  const correctingId = drafting?.suggestionId;
-
-  function beginPin(mode: 'page' | 'region', suggestionId?: string) {
-    dispatch({
-      type: 'begin-anchor',
-      noteId: note.id,
-      mode,
-      suggestionId,
-    });
-  }
 
   return (
     <article
@@ -78,37 +68,6 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
           Pinned to {pins.map((pin) => describeTarget(pin.target)).join(' · ')}
         </div>
       )}
-      <div className="pin-actions">
-        <button
-          type="button"
-          data-testid="pin-to-page"
-          onClick={() => beginPin('page', correctingId)}
-        >
-          Pin to page
-        </button>
-        <button
-          type="button"
-          data-testid="pin-to-region"
-          onClick={() => beginPin('region', correctingId)}
-        >
-          Pin to region
-        </button>
-        {drafting && (
-          <button type="button" onClick={() => dispatch({ type: 'cancel-anchor' })}>
-            Cancel pin
-          </button>
-        )}
-      </div>
-      {drafting && (
-        <p className="note-draft-hint">
-          {drafting.suggestionId ? 'Correcting a stub guess — ' : 'Manual pin — '}
-          {drafting.mode === 'page'
-            ? 'click a printed page.'
-            : drafting.pageIndex === undefined
-              ? 'click a page, then drag a rectangle.'
-              : 'drag a rectangle on that page.'}
-        </p>
-      )}
       {pending.length > 0 && (
         <div className="match-list">
           {pending.map((suggestion) => (
@@ -138,7 +97,9 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
                 <button
                   type="button"
                   data-testid="match-correct"
-                  onClick={() => beginPin(suggestion.target.kind === 'region' ? 'region' : 'page', suggestion.id)}
+                  onClick={() =>
+                    onArmPin(note.id, suggestion.target.kind === 'region' ? 'region' : 'page', suggestion.id)
+                  }
                 >
                   Correct
                 </button>

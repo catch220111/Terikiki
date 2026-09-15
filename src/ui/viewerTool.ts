@@ -1,0 +1,35 @@
+export type ViewerTool = 'select' | 'pin-page' | 'pin-region';
+
+export function pinModeForTool(tool: ViewerTool): 'page' | 'region' | null {
+  switch (tool) {
+    case 'select':
+      return null;
+    case 'pin-page':
+      return 'page';
+    case 'pin-region':
+      return 'region';
+    default: {
+      const _never: never = tool;
+      return _never;
+    }
+  }
+}
+
+export function pinToolHint(tool: ViewerTool, hasSelectedNote: boolean): string | null {
+  switch (tool) {
+    case 'select':
+      return null;
+    case 'pin-page':
+      return hasSelectedNote
+        ? 'Click a printed page to pin. Esc cancels.'
+        : 'Select a handwritten note, then click a printed page.';
+    case 'pin-region':
+      return hasSelectedNote
+        ? 'Click a page, then drag a rectangle. Esc cancels.'
+        : 'Select a handwritten note, then click a page and drag a rectangle.';
+    default: {
+      const _never: never = tool;
+      return _never;
+    }
+  }
+}
