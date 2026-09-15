@@ -808,8 +808,7 @@ img { max-width: 100%; display: block; }
   transition: opacity 150ms ease, transform 150ms ease;
 }
 .page-filmstrip.revealed,
-.page-filmstrip.static,
-.page-filmstrip:focus-within {
+.page-filmstrip.static {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;

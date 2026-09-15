@@ -38,6 +38,8 @@ export function PageFilmstrip({ state, dispatch }: Props) {
   const [currentId, setCurrentId] = useState<string | null>(state.focusCardId);
   const idleRef = useRef(0);
 
+  const pagesReady = state.pages.length > 0 && state.pages.every((page) => Boolean(page.imageUrl));
+
   useEffect(() => {
     setCurrentId(readingPageId(state));
   }, [state.camera, state.focusCardId, state.pages, state.revealNonce]);
@@ -60,7 +62,7 @@ export function PageFilmstrip({ state, dispatch }: Props) {
       window.removeEventListener('mousemove', bump);
       window.clearTimeout(idleRef.current);
     };
-  }, [reduced]);
+  }, [reduced, pagesReady]);
 
   const pages = state.pages;
   return (
@@ -94,7 +96,14 @@ export function PageFilmstrip({ state, dispatch }: Props) {
             data-page-index={page.pageIndex}
             aria-current={current ? 'page' : undefined}
             title={`Jump to page ${page.pageIndex + 1}${page.title ? ` · ${page.title}` : ''}`}
-            onClick={() => dispatch({ type: 'focus-card', cardId: page.id })}
+            onClick={() => {
+              window.clearTimeout(idleRef.current);
+              if (!reduced) {
+                setRevealed(true);
+                idleRef.current = window.setTimeout(() => setRevealed(false), FILMSTRIP_IDLE_MS);
+              }
+              dispatch({ type: 'focus-card', cardId: page.id });
+            }}
           >
             {page.imageUrl ? (
               <img src={page.imageUrl} alt="" draggable={false} />
