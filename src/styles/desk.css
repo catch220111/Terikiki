@@ -408,7 +408,7 @@ img { max-width: 100%; display: block; }
   letter-spacing: -0.03em;
   margin-top: 0.45rem;
 }
-.note-caption, .note-draft-hint, .note-pins {
+.note-caption, .note-pins {
   font-size: 0.76rem;
   color: #6e6e73;
   margin-top: 0.2rem;
@@ -427,7 +427,6 @@ img { max-width: 100%; display: block; }
   font-variant-numeric: tabular-nums;
 }
 .note-pins { color: color-mix(in srgb, var(--hand) 70%, #1d1d1f); }
-.note-draft-hint { color: var(--accent); }
 .paper-card.pdf {
   width: 204px;
   background: #ececee;
@@ -526,17 +525,6 @@ img { max-width: 100%; display: block; }
   color: var(--danger);
   font-size: 0.95rem;
 }
-.pin-actions { display: flex; flex-wrap: wrap; gap: 0.45rem 0.85rem; margin-top: 0.6rem; }
-.pin-actions button {
-  background: transparent;
-  color: #1d1d1f;
-  border: 0;
-  border-bottom: 1px solid transparent;
-  border-radius: 0;
-  padding: 0.05rem 0;
-  font-size: 0.76rem;
-}
-.pin-actions button:hover { border-bottom-color: #1d1d1f; }
 .match-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.65rem; }
 .match-slip {
   background: #f7f7f8;

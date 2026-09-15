@@ -29,6 +29,7 @@ import {
   trailIsCollapsedInspector,
   vlV11LayoutMissing,
   zoomFitBarIsCompact,
+  engThinReviewMissing,
   VL_V1_TOKENS,
 } from './lock.ts';
 
@@ -89,7 +90,8 @@ describe('VL v1.1 implementable cut', () => {
     expect(askPanelIsFlatSheet(css)).toBe(true);
     expect(askRemainsMatrixOverlay(css)).toBe(true);
     expect(pinChromeIsNotOnLeaves(noteSrc)).toBe(true);
-    expect(pinDrivenByActiveTool(traySrc)).toBe(true);
+    expect(pinDrivenByActiveTool(traySrc, shellSrc)).toBe(true);
+    expect(engThinReviewMissing(noteSrc, traySrc, shellSrc, css)).toEqual([]);
     expect(css).toMatch(/\.thumb-rail/);
     expect(css).toMatch(/\.zoom-fit-bar/);
     expect(css).toMatch(/\.segmented/);

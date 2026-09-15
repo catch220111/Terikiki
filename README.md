@@ -72,7 +72,7 @@ Gather chips → **Pull Ask** → ask → citation stamps jump back. Tuck / Esca
 
 ### Stage 2 import → suggest → accept / reject / correct → manual pin (unchanged)
 
-Pending slips stay **not pinned** until Accept / Correct / Pin to page / Pin to region. Reject writes nothing.
+Pending slips stay **not pinned** until Accept / Correct / pin via the segmented strip (Pin page or Pin region). Reject writes nothing.
 
 ## Architecture
 

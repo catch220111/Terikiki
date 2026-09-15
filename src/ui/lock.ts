@@ -242,14 +242,37 @@ export function trailIsCollapsedInspector(css: string, shellSrc: string): boolea
 
 /** Manual pin is an active viewer tool — not a form on every note leaf. */
 export function pinChromeIsNotOnLeaves(noteSrc: string): boolean {
-  return !noteSrc.includes('pin-to-page') && !noteSrc.includes('pin-to-region') && !noteSrc.includes('pin-actions');
+  return (
+    !noteSrc.includes('pin-to-page') &&
+    !noteSrc.includes('pin-to-region') &&
+    !noteSrc.includes('pin-actions') &&
+    !/Pin to page|Pin to region|Cancel pin/.test(noteSrc) &&
+    !noteSrc.includes("type: 'begin-anchor'")
+  );
 }
 
-export function pinDrivenByActiveTool(stripSrc: string): boolean {
+export function pinDrivenByActiveTool(stripSrc: string, shellSrc: string): boolean {
   return (
     stripSrc.includes('pin-to-page') &&
     stripSrc.includes('pin-region') &&
     stripSrc.includes('segmented') &&
-    stripSrc.includes('ViewerTool')
+    stripSrc.includes('ViewerTool') &&
+    shellSrc.includes('chooseTool') &&
+    shellSrc.includes('ViewerTool') &&
+    shellSrc.includes("type: 'begin-anchor'")
   );
+}
+
+/** Eng thin-review: pin via active tool; no per-leaf pin/form chrome. */
+export function engThinReviewMissing(
+  noteSrc: string,
+  traySrc: string,
+  shellSrc: string,
+  css: string,
+): string[] {
+  const missing: string[] = [];
+  if (!pinChromeIsNotOnLeaves(noteSrc)) missing.push('pin-form-on-leaves');
+  if (!pinDrivenByActiveTool(traySrc, shellSrc)) missing.push('pin-via-active-tool');
+  if (css.includes('.pin-actions') || css.includes('note-draft-hint')) missing.push('leaf-pin-css');
+  return missing;
 }
