@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import appSrc from '../App.tsx?raw';
+import contextSrc from '../ai/context.ts?raw';
 import printSrc from '../export/printSheet.ts?raw';
 import noteSrc from './NoteCard.tsx?raw';
 import connectorSrc from './ConnectorLayer.tsx?raw';
@@ -29,6 +31,8 @@ import {
   filmstripIsBottomWayfinding,
   filmstripIsOnlySaturatedNavigator,
   handwritingHasSizePrimacy,
+  handwritingIsOnlyWarmAccent,
+  jamesLingxiCoherenceMissing,
   missingVlV1Tokens,
   pageGlideIsEaseOut,
   pageStripIsReadingChrome,
@@ -127,6 +131,8 @@ describe('VL v1.1 implementable cut', () => {
     expect(vlV12ChromiumReaderMissing(css, stripSrc, clusterSrc, viewportSrc, cameraSrc, glideSrc, chromeSrc)).toEqual([]);
     expect(handwritingHasSizePrimacy(css)).toBe(true);
     expect(galvezJamesMissing(traySrc, railSrc, stripSrc, viewportSrc, css)).toEqual([]);
+    expect(jamesLingxiCoherenceMissing(css, cameraSrc, viewportSrc, appSrc, noteSrc, contextSrc)).toEqual([]);
+    expect(handwritingIsOnlyWarmAccent(css)).toBe(true);
     expect(css).not.toMatch(/\.thumb-rail/);
   });
 });

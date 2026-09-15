@@ -100,7 +100,11 @@ function DeskApp() {
         target: { kind: 'page', documentId: state.document.id, pageIndex: 1 },
       });
       const page = state.pages.find((p) => p.pageIndex === 1);
-      if (page) dispatch({ type: 'focus-card', cardId: page.id });
+      dispatch({ type: 'select-card', cardId: hanging.id, additive: false });
+      if (page) {
+        dispatch({ type: 'select-card', cardId: page.id, additive: false });
+        dispatch({ type: 'focus-card', cardId: page.id });
+      }
     }
     setStatus(`${SAMPLE_DOCUMENT_TITLE} · hanging ink on p2 — accept / reject / correct the rest`);
   }, [dispatch, matcher, state.document, state.notes.length, state.pages]);

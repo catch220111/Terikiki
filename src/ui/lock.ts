@@ -461,3 +461,80 @@ export function vlV12ChromiumReaderMissing(
   return missing;
 }
 
+/** James/Lingxi: default glance is PDF page + hanging handwriting, not a PDF-only shell. */
+export function defaultGlanceIncludesHangingInk(
+  cameraSrc: string,
+  viewportSrc: string,
+  appSrc: string,
+): boolean {
+  return (
+    cameraSrc.includes('CONNECTED_GLANCE_WIDTH_PX') &&
+    cameraSrc.includes('CARD_WIDTH_PX.note') &&
+    cameraSrc.includes('HANG_GAP_PX') &&
+    viewportSrc.includes('hangingPage') &&
+    viewportSrc.includes('state.anchors') &&
+    viewportSrc.includes('readingColumnCamera') &&
+    appSrc.includes('commit-manual-anchor') &&
+    appSrc.includes('pageIndex: 1') &&
+    appSrc.includes('hanging ink')
+  );
+}
+
+/** Demo SelectionSet gathers handwriting + PDF together so Ask is not PDF-only. */
+export function demoSelectionGathersInkAndPdf(appSrc: string, contextSrc: string): boolean {
+  return (
+    appSrc.includes("type: 'select-card'") &&
+    appSrc.includes('hanging.id') &&
+    appSrc.includes('page.id') &&
+    contextSrc.includes('snapshotsFromSelection') &&
+    contextSrc.includes('selectedCards')
+  );
+}
+
+/** Demo hang is a manual pin; pending match slips stay on the note, off the graph. */
+export function demoPendingMatchesStayOffGraph(appSrc: string, noteSrc: string): boolean {
+  return (
+    appSrc.includes('commit-manual-anchor') &&
+    appSrc.includes('propose-matches') &&
+    appSrc.includes('Pending match slips stay suggestions') &&
+    !appSrc.includes("type: 'accept-match'") &&
+    noteSrc.includes('match-slip') &&
+    noteSrc.includes('pendingSuggestionsFor') &&
+    noteSrc.includes('not pinned')
+  );
+}
+
+/** Valentina: --hand warms handwriting only; filmstrip keeps --accent; stage stays paper. */
+export function handwritingIsOnlyWarmAccent(css: string): boolean {
+  return (
+    /border-left:\s*3px solid var\(--hand\)/.test(css) &&
+    /\.paper-card\.note[\s\S]{0,280}var\(--hand\)/.test(css) &&
+    !/\.page-filmstrip[\s\S]{0,3200}var\(--hand\)/.test(css) &&
+    filmstripIsOnlySaturatedNavigator(css)
+  );
+}
+
+export function jamesLingxiCoherenceMissing(
+  css: string,
+  cameraSrc: string,
+  viewportSrc: string,
+  appSrc: string,
+  noteSrc: string,
+  contextSrc: string,
+): string[] {
+  const missing: string[] = [];
+  if (!defaultGlanceIncludesHangingInk(cameraSrc, viewportSrc, appSrc)) {
+    missing.push('connected-pdf-ink-glance');
+  }
+  if (!demoSelectionGathersInkAndPdf(appSrc, contextSrc)) {
+    missing.push('demo-ink-pdf-selection');
+  }
+  if (!demoPendingMatchesStayOffGraph(appSrc, noteSrc)) {
+    missing.push('pending-matches-off-graph');
+  }
+  if (!handwritingIsOnlyWarmAccent(css) || !stageIsNearWhitePaper(css)) {
+    missing.push('valentina-thesis-chrome');
+  }
+  return missing;
+}
+
