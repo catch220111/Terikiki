@@ -35,6 +35,7 @@ export function FileBtn({
   onFiles,
   multiple,
   testId,
+  quiet,
 }: {
   label: string;
   accept: string;
@@ -42,9 +43,10 @@ export function FileBtn({
   onFiles?: (files: readonly File[]) => void;
   multiple?: boolean;
   testId?: string;
+  quiet?: boolean;
 }) {
   return (
-    <label className="file-btn" data-testid={testId}>
+    <label className={`file-btn${quiet ? ' quiet' : ''}`} data-testid={testId}>
       {label}
       <input
         type="file"
@@ -68,11 +70,13 @@ export function InkBtn({
   onClick,
   active,
   testId,
+  title,
 }: {
   children: ReactNode;
   onClick: () => void;
   active?: boolean;
   testId?: string;
+  title?: string;
 }) {
   return (
     <button
@@ -80,6 +84,7 @@ export function InkBtn({
       className={`ink-btn ${active ? 'active' : ''}`}
       onClick={onClick}
       data-testid={testId}
+      title={title}
     >
       {children}
     </button>

@@ -10,9 +10,23 @@ Vite 8 + React 19 + TypeScript + `pdfjs-dist`. Node `>=22.12.0`.
 
 ## Chrome (this cut)
 
-The shell is VL v1 (`src/ui/lock.ts`): named tokens (`--bg --surface --border --text --muted --accent --hand --ai --pdf --danger`), flat dark chrome, tight sans wordmark, 8–12px cards. Handwriting cards stay largest. Origins are token color + scale, not craft-desk texture.
+The shell is a **PDF-editor / notebook reader** on VL v1 tokens (`src/ui/lock.ts`): `--bg --surface --border --text --muted --accent --hand --ai --pdf --danger`. Sans chrome and wordmark; script only on command-mark glyphs. Cards stay flat 8–12px. Handwriting is largest (`--hand`); PDF pages are stiff (`--pdf`); AI cards stay quieter (`--ai`). Origins are token color + scale, not craft-desk texture and not a marketing masthead.
 
-Stage 1–4 locks stay in force: handwriting primacy, Ask as a pulled tray, SelectionSet-only Ask context, pending matches never auto-pin, `FileBtn` a single label, one iframe print sheet, labeled trail, detect → confirm marks.
+VL v1.1 implementable cut (`src/ui/lock.ts`):
+
+- Keep v1 tokens; no craft regress.
+- Dual surface: tool chrome vs **light page paper** (`--stage`).
+- Thumbnail rail
+- **Compact** zoom/fit bar (− / % / + / Fit width / Fit page)
+- **Segmented annotation strip** (Pan / Select / Pin page / Pin region, plus Detect / Print / Ask)
+- Trail as **collapsed inspector drawer**
+- Ask stays Pull/Tuck flat sheet
+- Handwriting size primacy unchanged
+- File actions (Open PDF / Import) stay quieter on the document toolbar
+
+Soft residuals stay backlog. Stage 1–4 behavior locks hold.
+
+The chrome is tool-forward: quieter file controls on the document toolbar; Detect / Print / Ask sit with the annotation tools. Manual pin is the active tool on the segmented strip, not a form on every note. Pan is a capture-phase tool so cards do not steal the drag. The matrix stays the spatial center.
 
 ## Stage 4
 
@@ -43,7 +57,7 @@ npm run dev
 
 Open `http://127.0.0.1:5174/Terikiki/`.
 
-The matrix boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two unpinned handwritten notes. Match slips are **pending**. Marks wait for **Detect marks**.
+The editor boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*) and two unpinned handwritten notes. The toolbar shows the document title; the left thumbnail rail lists p1–p3. Match slips are **pending**. Marks wait for **Detect marks** on the annotation strip (Trail opens as a drawer). Click a page thumb to jump in the matrix (that does not gather Ask). **Pan** drags the matrix including over cards. Pin with **Pin page** / **Pin region** in the segmented strip after selecting a note — not with per-card pin buttons. **Fit width** / **Fit page** live on the zoom bar.
 
 ### Print desk / trail / detect → confirm
 
@@ -51,7 +65,7 @@ The matrix boots a 3-page sample lecture (*Paper Mechanics 01 — Coupled notes*
 2. **Detect marks**. The trail inbox lists proposals (`?`, box, `EXPLAIN`, …) with meanings. Nothing is committed yet.
 3. **Confirm** `?` on *Why beating?*. **Dismiss** or **Confirm** `EXPLAIN` on *Box the envelope*. Confirmed glyphs appear on the note in script; Ask does not open; no pin is written.
 4. Click the hanging note and its printed page. **Pull Ask**, ask a question, optionally **Pin answer on desk**. The trail shows student ink beats, then an **AI** explanation — separately labeled.
-5. **Print desk**. One sheet: printed excerpt + handwritten margin. The thinking trail rides the sheet as a thin ordered strip (**ink** vs **AI**). Unconfirmed marks do not appear or execute — confirm them in the trail inbox first. **Send to printer** prints the iframe. Close / Escape.
+5. **Print**. One sheet: printed excerpt + handwritten margin. The thinking trail rides the sheet as a thin ordered strip (**ink** vs **AI**). Unconfirmed marks do not appear or execute — confirm them in the trail inbox first. **Send to printer** prints the iframe. Close / Escape.
 
 ### Stage 3 Ask (unchanged)
 
@@ -59,7 +73,7 @@ Gather chips → **Pull Ask** → ask → citation stamps jump back. Tuck / Esca
 
 ### Stage 2 import → suggest → accept / reject / correct → manual pin (unchanged)
 
-Pending slips stay **not pinned** until Accept / Correct / Pin to page / Pin to region. Reject writes nothing.
+Pending slips stay **not pinned** until Accept / Correct / pin via the segmented strip (Pin page or Pin region). Reject writes nothing.
 
 ## Architecture
 
@@ -77,7 +91,7 @@ Pending slips stay **not pinned** until Accept / Correct / Pin to page / Pin to 
 | Thinking trail order + AI/ink lock | `src/trail/events.ts`, `src/trail/lock.ts` |
 | Stage 4 print lock (one sheet, iframe not popup, AI/ink labeled) | `src/export/lock.ts`, `src/export/printSheet.ts` |
 | pdf.js loader | `src/pdf/loadPdf.ts` |
-| VL v1 chrome lock (flat tokens, no craft desk, handwriting size primacy) | `src/ui/lock.ts`, `src/styles/desk.css` |
+| VL v1 + PDF-editor shell lock (tokens, no craft desk, handwriting size, toolbar + page strip, Ask overlay) | `src/ui/lock.ts`, `src/styles/desk.css` |
 | Desk UI | `src/ui/*`, `src/styles/desk.css` |
 
 Sample assets are generated by `npm run samples` (`scripts/generate-samples.mjs`) into `public/samples` (gitignored).

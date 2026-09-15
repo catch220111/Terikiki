@@ -45,6 +45,8 @@ export interface DeskState {
   anchorDraft: AnchorDraft | null;
 }
 
+export const INITIAL_CAMERA: Camera = { x: 28, y: 18, zoom: 0.84 };
+
 export const initialDeskState: DeskState = {
   document: null,
   pages: [],
@@ -55,7 +57,7 @@ export const initialDeskState: DeskState = {
   selection: { cardIds: [] },
   layers: { ...DEFAULT_LAYER_VISIBILITY },
   orientation: 'vertical',
-  camera: { x: 28, y: 18, zoom: 0.84 },
+  camera: { ...INITIAL_CAMERA },
   trail: [],
   marks: [],
   aiTurns: [],

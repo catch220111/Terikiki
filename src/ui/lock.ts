@@ -1,6 +1,13 @@
 /**
- * VL v1 lock: flat consumer chrome. Tokens and shell only — Stage 1–4 behavior stays.
- * Walnut / cream / gold / vermillion craft desk is retired from the shell.
+ * VL v1.1 implementable cut (Valentina). Tokens and shell only — Stage 1–4
+ * behavior stays. Soft residuals stay backlog.
+ *
+ * - Keep v1 tokens; no craft regress.
+ * - Dual surface: tool chrome vs light page paper (`--stage`, not a v1 token).
+ * - Thumbnail rail, compact zoom/fit bar (Fit width / Fit page), segmented annotation strip.
+ * - Pan on the strip; Detect / Print / Ask with annotation tools; quieter file actions.
+ * - Trail as collapsed inspector drawer. Ask stays Pull/Tuck flat sheet.
+ * - Handwriting size primacy unchanged.
  */
 export const VL_V1_TOKENS = [
   '--bg',
@@ -21,6 +28,12 @@ export const CARD_WIDTH_PX = {
   ai: 168,
 } as const;
 
+export const CARD_RADIUS_PX = {
+  note: 12,
+  pdf: 8,
+  ai: 8,
+} as const;
+
 const CRAFT_CHROME = /Palatino|walnut|washi|--vermillion|#c23b22|#c4a35a|#1b1410|#f4ead4|#f3ead6|note-tape|--rot\b|rotate\(/;
 
 export function missingVlV1Tokens(css: string): string[] {
@@ -39,6 +52,22 @@ export function cardWidthPx(css: string, kind: 'note' | 'pdf' | 'ai'): number | 
   const match = css.match(new RegExp(`\\.paper-card\\.${kind}\\s*\\{[^}]*width:\\s*(\\d+)px`, 's'));
   if (!match?.[1]) return null;
   return Number(match[1]);
+}
+
+export function cardRadiusPx(css: string, kind: 'note' | 'pdf' | 'ai'): number | null {
+  const kindMatch = css.match(new RegExp(`\\.paper-card\\.${kind}\\s*\\{[^}]*border-radius:\\s*(\\d+)px`, 's'));
+  if (kindMatch?.[1]) return Number(kindMatch[1]);
+  const token = css.match(/--radius:\s*(\d+)px/);
+  if (!token?.[1]) return null;
+  return Number(token[1]);
+}
+
+export function cardRadiusInBand(css: string): boolean {
+  for (const kind of ['note', 'pdf', 'ai'] as const) {
+    const radius = cardRadiusPx(css, kind);
+    if (radius === null || radius < 8 || radius > 12) return false;
+  }
+  return true;
 }
 
 /** Handwriting tiles must dominate PDF and AI in the matrix. */
@@ -80,6 +109,20 @@ export function askPanelIsFlatSheet(css: string): boolean {
   );
 }
 
+/** Ask overlays the matrix. It is not a dedicated chat-rail column. */
+export function askRemainsMatrixOverlay(css: string): boolean {
+  const ask = css.match(/\.ask-panel\s*\{([^}]+)\}/);
+  const desk = css.match(/\.desk\s*\{([^}]+)\}/);
+  if (!ask?.[1] || !desk?.[1]) return false;
+  return (
+    /grid-area:\s*matrix/.test(ask[1]) &&
+    /thumbs/.test(desk[1]) &&
+    /matrix/.test(desk[1]) &&
+    /zoom/.test(desk[1]) &&
+    !/ask-rail|chat-rail/.test(css)
+  );
+}
+
 /** Connectors are a thin solid stroke at ~30–40% opacity. */
 export function connectorStrokeOutsideBand(css: string): boolean {
   const mix = css.match(/\.connectors\s+path\s*\{[^}]*color-mix\(in srgb,\s*var\(--accent\)\s+(\d+)%/s);
@@ -95,4 +138,177 @@ export function connectorsAreSelectHoverOnly(connectorSrc: string): boolean {
     connectorSrc.includes('state.hoverCardId') &&
     !connectorSrc.includes('lastTurnCitedIds')
   );
+}
+
+/** Document toolbar groups quieter files, view, and Trail — not a marketing masthead. */
+export function toolbarIsDocumentApp(railSrc: string): boolean {
+  return (
+    railSrc.includes('doc-toolbar') &&
+    railSrc.includes('tool-group') &&
+    railSrc.includes('Open PDF') &&
+    railSrc.includes('Import notes') &&
+    railSrc.includes('quiet') &&
+    railSrc.includes('LayerToggles') &&
+    railSrc.includes('set-orientation') &&
+    railSrc.includes('Trail') &&
+    !railSrc.includes('Detect marks') &&
+    !railSrc.includes('Print') &&
+    !railSrc.includes('Pull Ask') &&
+    !railSrc.includes('brand-promise')
+  );
+}
+
+/** Page strip is a notebook navigator: jump via focus, zoom via camera. It does not gather Ask. */
+export function pageStripIsReadingChrome(stripSrc: string): boolean {
+  return (
+    stripSrc.includes("type: 'focus-card'") &&
+    stripSrc.includes("type: 'set-zoom'") &&
+    stripSrc.includes("type: 'set-camera'") &&
+    stripSrc.includes('data-testid="page-strip"') &&
+    stripSrc.includes('data-testid="zoom-fit-bar"') &&
+    !stripSrc.includes("type: 'select-card'") &&
+    !stripSrc.includes("type: 'open-ask'")
+  );
+}
+
+function ruleBodyContaining(css: string, className: string): string {
+  const match = css.match(new RegExp(`[^#{]*\\.${className}\\b[^{]*\\{([^}]+)\\}`));
+  return match?.[1] ?? '';
+}
+
+const TOOL_CHROME_SURFACES = [
+  'doc-toolbar',
+  'thumb-rail',
+  'zoom-fit-bar',
+  'trail-drawer',
+  'ask-panel',
+  'annotation-strip',
+] as const;
+
+/**
+ * VL v1.1 dual surface: tool chrome uses `--surface`;
+ * light page paper uses `--stage`. `--stage` is not a v1 token.
+ */
+export function dualSurfaceRoles(css: string): boolean {
+  if ((VL_V1_TOKENS as readonly string[]).includes('--stage')) return false;
+  if (!/--stage:\s*#/.test(css) || /#f4ead4|#f3ead6|#1b1410/.test(css)) return false;
+  for (const name of TOOL_CHROME_SURFACES) {
+    if (!ruleBodyContaining(css, name).includes('var(--surface)')) return false;
+  }
+  return ruleBodyContaining(css, 'matrix-viewport').includes('var(--stage)');
+}
+
+/** Compact zoom/fit bar: − / % / + / Fit width / Fit page — no page-count chrome. */
+export function zoomFitBarIsCompact(css: string, stripSrc: string): boolean {
+  const body = ruleBodyContaining(css, 'zoom-fit-bar');
+  const min = body.match(/min-height:\s*(\d+)px/);
+  const max = body.match(/max-height:\s*(\d+)px/);
+  return (
+    stripSrc.includes('data-testid="zoom-fit-bar"') &&
+    stripSrc.includes('Fit width') &&
+    stripSrc.includes('Fit page') &&
+    stripSrc.includes('zoom-fit-width') &&
+    stripSrc.includes('zoom-fit-page') &&
+    !stripSrc.includes('page-strip-count') &&
+    Boolean(min && Number(min[1]) <= 32) &&
+    Boolean(max && Number(max[1]) <= 32)
+  );
+}
+
+/** VL v1.1 layout: thumbnail rail, compact zoom/fit, segmented annotation strip, collapsed trail, Ask sheet. */
+export function vlV11LayoutMissing(
+  css: string,
+  stripSrc: string,
+  traySrc: string,
+  shellSrc: string,
+): string[] {
+  const missing: string[] = [];
+  if (!css.includes('.thumb-rail') || !stripSrc.includes('thumb-rail')) missing.push('thumbnail-rail');
+  if (!zoomFitBarIsCompact(css, stripSrc)) missing.push('compact-zoom-fit-bar');
+  if (!css.includes('.segmented') || !traySrc.includes('annotation-strip') || !traySrc.includes('segmented')) {
+    missing.push('segmented-annotation-strip');
+  }
+  if (!trailIsCollapsedInspector(css, shellSrc)) missing.push('collapsed-inspector-drawer');
+  if (!askPanelIsFlatSheet(css) || !askRemainsMatrixOverlay(css)) missing.push('ask-pull-tuck-sheet');
+  return missing;
+}
+
+/** Trail is a collapsed inspector drawer, not a permanent notes column. */
+export function trailIsCollapsedInspector(css: string, shellSrc: string): boolean {
+  const desk = css.match(/\.desk\s*\{([^}]+)\}/);
+  return (
+    Boolean(desk?.[1]?.includes('thumbs')) &&
+    !/grid-template-areas:[\s\S]*notes/.test(desk?.[1] ?? '') &&
+    css.includes('.trail-drawer') &&
+    /grid-area:\s*matrix/.test(css.match(/\.trail-drawer\s*\{([^}]+)\}/)?.[1] ?? '') &&
+    shellSrc.includes('inspectorOpen') &&
+    shellSrc.includes('TrailStrip')
+  );
+}
+
+/** Manual pin is an active viewer tool — not a form on every note leaf. */
+export function pinChromeIsNotOnLeaves(noteSrc: string): boolean {
+  return (
+    !noteSrc.includes('pin-to-page') &&
+    !noteSrc.includes('pin-to-region') &&
+    !noteSrc.includes('pin-actions') &&
+    !/Pin to page|Pin to region|Cancel pin/.test(noteSrc) &&
+    !noteSrc.includes("type: 'begin-anchor'")
+  );
+}
+
+export function pinDrivenByActiveTool(stripSrc: string, shellSrc: string): boolean {
+  return (
+    stripSrc.includes('pin-to-page') &&
+    stripSrc.includes('pin-region') &&
+    stripSrc.includes('segmented') &&
+    stripSrc.includes('ViewerTool') &&
+    shellSrc.includes('chooseTool') &&
+    shellSrc.includes('ViewerTool') &&
+    shellSrc.includes("type: 'begin-anchor'")
+  );
+}
+
+/** Eng thin-review: pin via active tool; no per-leaf pin/form chrome. */
+export function engThinReviewMissing(
+  noteSrc: string,
+  traySrc: string,
+  shellSrc: string,
+  css: string,
+): string[] {
+  const missing: string[] = [];
+  if (!pinChromeIsNotOnLeaves(noteSrc)) missing.push('pin-form-on-leaves');
+  if (!pinDrivenByActiveTool(traySrc, shellSrc)) missing.push('pin-via-active-tool');
+  if (css.includes('.pin-actions') || css.includes('note-draft-hint')) missing.push('leaf-pin-css');
+  return missing;
+}
+
+/** Galvez/James: Pan on the strip, Fit width + Fit page, Detect/Print/Ask with tools, quieter files. */
+export function galvezJamesMissing(
+  traySrc: string,
+  railSrc: string,
+  stripSrc: string,
+  viewportSrc: string,
+  css: string,
+): string[] {
+  const missing: string[] = [];
+  if (!traySrc.includes("'pan'") || !traySrc.includes('Pan') || !traySrc.includes('tool-pan')) {
+    missing.push('pan-on-segmented-strip');
+  }
+  if (
+    !viewportSrc.includes("tool === 'pan'") ||
+    !viewportSrc.includes('capture: true') ||
+    !viewportSrc.includes('data-testid="matrix-viewport"')
+  ) {
+    missing.push('pan-capture-on-matrix');
+  }
+  if (!zoomFitBarIsCompact(css, stripSrc)) missing.push('fit-width-and-fit-page');
+  if (!traySrc.includes('Detect marks') || !traySrc.includes('Print') || !traySrc.includes('Pull Ask')) {
+    missing.push('detect-print-ask-on-strip');
+  }
+  if (railSrc.includes('Detect marks') || railSrc.includes('Pull Ask') || railSrc.includes('print-desk')) {
+    missing.push('actions-still-on-rail');
+  }
+  if (!railSrc.includes('quiet') || !css.includes('.file-btn.quiet')) missing.push('quiet-file-actions');
+  return missing;
 }

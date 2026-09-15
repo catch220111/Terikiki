@@ -8,23 +8,26 @@ import { AiCardView, NoteCard } from './NoteCard.tsx';
 interface Props {
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
+  onArmPin: (noteId: string, mode: 'page' | 'region', suggestionId?: string) => void;
 }
 
 function HangCard({
   card,
   state,
   dispatch,
+  onArmPin,
 }: {
   card: Note | AiCard;
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
+  onArmPin: (noteId: string, mode: 'page' | 'region', suggestionId?: string) => void;
 }) {
-  if (card.kind === 'note') return <NoteCard note={card} state={state} dispatch={dispatch} />;
+  if (card.kind === 'note') return <NoteCard note={card} state={state} dispatch={dispatch} onArmPin={onArmPin} />;
   if (card.kind === 'ai') return <AiCardView card={card} state={state} dispatch={dispatch} />;
   return assertNever(card, 'Unhandled hanging card');
 }
 
-export function PageCluster({ state, dispatch }: Props) {
+export function PageCluster({ state, dispatch, onArmPin }: Props) {
   const loose = looseCards(state);
   return (
     <>
@@ -33,7 +36,7 @@ export function PageCluster({ state, dispatch }: Props) {
           <div className="cluster-label">Unpinned</div>
           <div className="hang-axis">
             {loose.map((card) => (
-              <HangCard key={card.id} card={card} state={state} dispatch={dispatch} />
+              <HangCard key={card.id} card={card} state={state} dispatch={dispatch} onArmPin={onArmPin} />
             ))}
           </div>
         </section>
@@ -49,7 +52,7 @@ export function PageCluster({ state, dispatch }: Props) {
               <PdfPageCard page={page} state={state} dispatch={dispatch} />
               <div className="hang-axis">
                 {hanging.map((card) => (
-                  <HangCard key={card.id} card={card} state={state} dispatch={dispatch} />
+                  <HangCard key={card.id} card={card} state={state} dispatch={dispatch} onArmPin={onArmPin} />
                 ))}
               </div>
             </section>
