@@ -22,7 +22,7 @@ export function SelectionTray({ state, dispatch, tool, onChooseTool }: Props) {
   return (
     <div
       className={`annotation-strip selection-tray ${empty ? 'empty' : ''}`}
-      aria-label="Annotation tools and selection"
+      aria-label="Segmented annotation strip"
     >
       <div className="segmented" role="group" aria-label="Annotation tools">
         {TOOLS.map((item) => (

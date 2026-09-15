@@ -12,11 +12,20 @@ Vite 8 + React 19 + TypeScript + `pdfjs-dist`. Node `>=22.12.0`.
 
 The shell is a **PDF-editor / notebook reader** on VL v1 tokens (`src/ui/lock.ts`): `--bg --surface --border --text --muted --accent --hand --ai --pdf --danger`. Sans chrome and wordmark; script only on command-mark glyphs. Cards stay flat 8–12px. Handwriting is largest (`--hand`); PDF pages are stiff (`--pdf`); AI cards stay quieter (`--ai`). Origins are token color + scale, not craft-desk texture and not a marketing masthead.
 
-VL v1.1 dual surface: tool chrome (toolbar, thumbnail rail, zoom/fit, inspectors) uses `--surface`; the page stage uses a lighter `--stage` paper. Layout is document-app: thumbnail rail, compact zoom/fit bar, segmented annotation strip (Select / Pin page / Pin region). Trail/marks are a **collapsed inspector drawer**. Manual pin is the active tool — not a form on every note. Ask stays a Pull/Tuck surface sheet over the matrix — not a PDF+chat rail.
+VL v1.1 implementable cut (`src/ui/lock.ts`):
 
-The chrome is tool-forward: dense grouped toolbar (Open PDF / Import notes / layers / orientation / Print / Detect marks / Trail / Pull Ask). The matrix stays the spatial center.
+- Keep v1 tokens; no craft regress.
+- Dual surface: tool chrome vs **light page paper** (`--stage`).
+- Thumbnail rail
+- **Compact** zoom/fit bar (− / % / + / Fit)
+- **Segmented annotation strip**
+- Trail as **collapsed inspector drawer**
+- Ask stays Pull/Tuck flat sheet
+- Handwriting size primacy unchanged
 
-Stage 1–4 locks stay in force: handwriting primacy, Ask as a pulled tray, SelectionSet-only Ask context, pending matches never auto-pin, `FileBtn` a single label, one iframe print sheet, labeled trail, detect → confirm marks.
+Soft residuals stay backlog. Stage 1–4 behavior locks hold.
+
+The chrome is tool-forward: dense grouped toolbar (Open PDF / Import notes / layers / orientation / Print / Detect marks / Trail / Pull Ask). Manual pin is the active tool on the segmented strip, not a form on every note. The matrix stays the spatial center.
 
 ## Stage 4
 

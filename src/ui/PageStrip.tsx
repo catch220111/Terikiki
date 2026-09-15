@@ -44,12 +44,8 @@ export function ThumbnailRail({ state, dispatch }: Props) {
 }
 
 export function ZoomFitBar({ state, dispatch }: Props) {
-  const pageCount = state.pages.length;
   return (
     <div className="zoom-fit-bar" data-testid="zoom-fit-bar" role="group" aria-label="Zoom and fit">
-      <span className="page-strip-count">
-        {pageCount === 0 ? 'No pages' : `${pageCount} ${pageCount === 1 ? 'page' : 'pages'}`}
-      </span>
       <button
         type="button"
         className="tool-btn"

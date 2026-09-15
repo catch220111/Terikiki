@@ -818,9 +818,10 @@ img { max-width: 100%; display: block; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.28rem;
-  min-height: 32px;
-  padding: 0.18rem 0.65rem;
+  gap: 0.22rem;
+  min-height: 28px;
+  max-height: 32px;
+  padding: 0.12rem 0.55rem;
   border-top: 1px solid var(--border);
   background: var(--surface);
 }

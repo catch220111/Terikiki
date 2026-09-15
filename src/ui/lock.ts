@@ -1,10 +1,12 @@
 /**
- * VL v1 + v1.1 chrome lock. Tokens and shell only — Stage 1–4 behavior stays.
- * Walnut / cream / gold / vermillion craft desk stays retired.
- * Ask stays a Pull/Tuck overlay; the matrix stays the spatial center.
+ * VL v1.1 implementable cut (Valentina). Tokens and shell only — Stage 1–4
+ * behavior stays. Soft residuals stay backlog.
  *
- * v1 named tokens are the closed set below. `--stage` is the v1.1 page-paper
- * role, not a v1 token.
+ * - Keep v1 tokens; no craft regress.
+ * - Dual surface: tool chrome vs light page paper (`--stage`, not a v1 token).
+ * - Thumbnail rail, compact zoom/fit bar, segmented annotation strip.
+ * - Trail as collapsed inspector drawer. Ask stays Pull/Tuck flat sheet.
+ * - Handwriting size primacy unchanged.
  */
 export const VL_V1_TOKENS = [
   '--bg',
@@ -181,8 +183,8 @@ const TOOL_CHROME_SURFACES = [
 ] as const;
 
 /**
- * VL v1.1 dual surface: toolbar / rails / inspectors use `--surface`.
- * The page stage uses a lighter `--stage` paper. `--stage` is not a v1 token.
+ * VL v1.1 dual surface: tool chrome uses `--surface`;
+ * light page paper uses `--stage`. `--stage` is not a v1 token.
  */
 export function dualSurfaceRoles(css: string): boolean {
   if ((VL_V1_TOKENS as readonly string[]).includes('--stage')) return false;
@@ -193,7 +195,21 @@ export function dualSurfaceRoles(css: string): boolean {
   return ruleBodyContaining(css, 'matrix-viewport').includes('var(--stage)');
 }
 
-/** VL v1.1 layout: thumbnail rail, zoom/fit bar, segmented strip, collapsed trail. */
+/** Compact zoom/fit bar: − / % / + / Fit only — no page-count chrome. */
+export function zoomFitBarIsCompact(css: string, stripSrc: string): boolean {
+  const body = ruleBodyContaining(css, 'zoom-fit-bar');
+  const min = body.match(/min-height:\s*(\d+)px/);
+  const max = body.match(/max-height:\s*(\d+)px/);
+  return (
+    stripSrc.includes('data-testid="zoom-fit-bar"') &&
+    stripSrc.includes('Fit') &&
+    !stripSrc.includes('page-strip-count') &&
+    Boolean(min && Number(min[1]) <= 32) &&
+    Boolean(max && Number(max[1]) <= 32)
+  );
+}
+
+/** VL v1.1 layout: thumbnail rail, compact zoom/fit, segmented annotation strip, collapsed trail, Ask sheet. */
 export function vlV11LayoutMissing(
   css: string,
   stripSrc: string,
@@ -202,13 +218,16 @@ export function vlV11LayoutMissing(
 ): string[] {
   const missing: string[] = [];
   if (!css.includes('.thumb-rail') || !stripSrc.includes('thumb-rail')) missing.push('thumbnail-rail');
-  if (!css.includes('.zoom-fit-bar') || !stripSrc.includes('zoom-fit-bar')) missing.push('zoom-fit-bar');
-  if (!css.includes('.segmented') || !traySrc.includes('segmented')) missing.push('segmented-tool-strip');
-  if (!trailIsCollapsedInspector(css, shellSrc)) missing.push('collapsed-inspector');
+  if (!zoomFitBarIsCompact(css, stripSrc)) missing.push('compact-zoom-fit-bar');
+  if (!css.includes('.segmented') || !traySrc.includes('annotation-strip') || !traySrc.includes('segmented')) {
+    missing.push('segmented-annotation-strip');
+  }
+  if (!trailIsCollapsedInspector(css, shellSrc)) missing.push('collapsed-inspector-drawer');
+  if (!askPanelIsFlatSheet(css) || !askRemainsMatrixOverlay(css)) missing.push('ask-pull-tuck-sheet');
   return missing;
 }
 
-/** Trail/marks live in a tucked overlay drawer, not a permanent notes column. */
+/** Trail is a collapsed inspector drawer, not a permanent notes column. */
 export function trailIsCollapsedInspector(css: string, shellSrc: string): boolean {
   const desk = css.match(/\.desk\s*\{([^}]+)\}/);
   return (

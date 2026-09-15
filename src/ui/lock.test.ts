@@ -28,6 +28,7 @@ import {
   toolbarIsDocumentApp,
   trailIsCollapsedInspector,
   vlV11LayoutMissing,
+  zoomFitBarIsCompact,
   VL_V1_TOKENS,
 } from './lock.ts';
 
@@ -37,7 +38,7 @@ const { fileURLToPath } = await import('url');
 
 const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../styles/desk.css'), 'utf8');
 
-describe('VL v1 chrome lock', () => {
+describe('VL v1.1 implementable cut', () => {
   it('keeps the closed VL v1 token set and retires craft-desk shell tropes', () => {
     expect([...VL_V1_TOKENS]).toEqual([
       '--bg',
@@ -77,18 +78,22 @@ describe('VL v1 chrome lock', () => {
     expect(css).not.toMatch(/stroke-dasharray/);
   });
 
-  it('locks VL v1.1 dual surface and PDF-editor layout', () => {
+  it('locks Valentina VL v1.1: dual surface, compact chrome, Ask sheet, handwriting primacy', () => {
+    expect(handwritingHasSizePrimacy(css)).toBe(true);
     expect(toolbarIsDocumentApp(railSrc)).toBe(true);
     expect(pageStripIsReadingChrome(stripSrc)).toBe(true);
     expect(dualSurfaceRoles(css)).toBe(true);
+    expect(zoomFitBarIsCompact(css, stripSrc)).toBe(true);
     expect(vlV11LayoutMissing(css, stripSrc, traySrc, shellSrc)).toEqual([]);
     expect(trailIsCollapsedInspector(css, shellSrc)).toBe(true);
+    expect(askPanelIsFlatSheet(css)).toBe(true);
+    expect(askRemainsMatrixOverlay(css)).toBe(true);
     expect(pinChromeIsNotOnLeaves(noteSrc)).toBe(true);
     expect(pinDrivenByActiveTool(traySrc)).toBe(true);
-    expect(css).toMatch(/\.doc-toolbar/);
     expect(css).toMatch(/\.thumb-rail/);
     expect(css).toMatch(/\.zoom-fit-bar/);
     expect(css).toMatch(/\.segmented/);
+    expect(traySrc).toMatch(/annotation-strip/);
     expect(css).not.toMatch(/brand-promise/);
   });
 });
