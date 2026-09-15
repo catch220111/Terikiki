@@ -8,9 +8,17 @@ export type CardKind = 'pdf-page' | 'note' | 'ai';
 
 export type MatrixOrientation = 'vertical' | 'horizontal';
 
+/** How an anchor entered the graph. Pending suggestions are not a source. */
 export type AnchorSource = 'manual' | 'accepted-match' | 'corrected-match';
 
+/** Student decision on a stub guess. Reject is not a commit path. */
 export type MatchDecision = 'accepted' | 'rejected' | 'corrected';
+
+/** Decisions that may write an anchor. */
+export type MatchCommitDecision = Exclude<MatchDecision, 'rejected'>;
+
+/** Explicit paths onto the anchor graph. */
+export type AnchorCommitPath = 'accept' | 'correct' | 'manual';
 
 export type TrailEventKind =
   | 'first_note'
@@ -98,22 +106,49 @@ export interface AiCard {
 
 export type MatrixCard = PdfPageCard | NoteCard | AiCard;
 
-export interface Anchor {
+interface AnchorBase {
   id: string;
   /** Card hanging off the PDF page/region (note or pinned AI). */
   cardId: string;
   target: AnchorTarget;
-  source: AnchorSource;
 }
 
-export interface MatchSuggestion {
+/** Committed pin. Pending match suggestions never inhabit this shape. */
+export type Anchor =
+  | (AnchorBase & { source: 'manual' })
+  | (AnchorBase & { source: 'accepted-match'; suggestionId: string })
+  | (AnchorBase & { source: 'corrected-match'; suggestionId: string });
+
+interface MatchSuggestionBase {
   id: string;
   noteId: string;
   target: AnchorTarget;
   confidence: number;
   rationale: string;
-  status: MatchSuggestionStatus;
 }
+
+/** Matcher output. Must not be copied into the anchor graph. */
+export interface PendingMatchSuggestion extends MatchSuggestionBase {
+  status: 'pending';
+}
+
+export interface AcceptedMatchSuggestion extends MatchSuggestionBase {
+  status: 'accepted';
+}
+
+export interface RejectedMatchSuggestion extends MatchSuggestionBase {
+  status: 'rejected';
+}
+
+export interface CorrectedMatchSuggestion extends MatchSuggestionBase {
+  status: 'corrected';
+}
+
+export type MatchSuggestion =
+  | PendingMatchSuggestion
+  | AcceptedMatchSuggestion
+  | RejectedMatchSuggestion
+  | CorrectedMatchSuggestion;
 
 export interface ThinkingTrailEvent {
   id: string;
@@ -218,6 +253,41 @@ export function cardLayer(card: MatrixCard): LayerId {
 
 export function isLayerVisible(layers: LayerVisibility, origin: LayerOrigin, type: LayerType): boolean {
   return layers[layerKey(origin, type)] !== false;
+}
+
+export function isPendingSuggestion(
+  suggestion: MatchSuggestion,
+): suggestion is PendingMatchSuggestion {
+  return suggestion.status === 'pending';
+}
+
+export function matchSuggestionId(anchor: Anchor): string | undefined {
+  switch (anchor.source) {
+    case 'manual':
+      return undefined;
+    case 'accepted-match':
+    case 'corrected-match':
+      return anchor.suggestionId;
+    default: {
+      const _never: never = anchor;
+      return _never;
+    }
+  }
+}
+
+export function sourceForCommitPath(path: AnchorCommitPath): AnchorSource {
+  switch (path) {
+    case 'accept':
+      return 'accepted-match';
+    case 'correct':
+      return 'corrected-match';
+    case 'manual':
+      return 'manual';
+    default: {
+      const _never: never = path;
+      return _never;
+    }
+  }
 }
 
 export function clampRect(rect: NormalizedRect): NormalizedRect {

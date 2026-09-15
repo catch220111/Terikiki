@@ -14,7 +14,7 @@ Note import, manual anchors, and the MatchingService UX boundary. Stage 1 visual
 
 1. **Import notes** — photographed or scanned images land as loose leaves on the perpendicular axis. Drop images onto the desk or use **Import notes** (multiple files). They can pin to pages; they do not auto-attach.
 2. **Manual anchoring** — pin a leaf to a whole PDF page, or drag a rectangle on a page. One note may hold several pins (one leaf, many threads). Connectors stay contextual (select/hover) and solid.
-3. **MatchingService** — stub matcher may only *suggest* (confidence + short rationale). You **Accept / Reject / Correct**. Nothing silent auto-commits. The stub is honest: wording overlap, not a vision model.
+3. **MatchingService** — stub matcher may only *suggest* (`PendingMatchSuggestion`, status `pending`). Pending slips **do not enter the anchor graph**. **Accept** or **Correct** commits a match-sourced pin; **Reject** writes nothing; **Pin to page / Pin to region** writes a `manual` anchor with no suggestion required. The stub is honest: wording overlap, not a vision model.
 
 Stage 1 matrix shell, Ask tray, trail, and print remain available; they are not the Stage 2 focus.
 
@@ -48,6 +48,7 @@ Ask, Detect marks, and Print desk still work from Stage 1 if you wander there.
 | Pure desk reducer | `src/engine/deskState.ts` |
 | Anchor helpers (page/region, duplicates, hang slot) | `src/engine/anchors.ts` |
 | MatchingService boundary + stub | `src/matching/service.ts`, `src/matching/stubMatcher.ts` |
+| Stage 2 anchor lock (pending off-graph) | `src/matching/lock.ts` |
 | Note image import | `src/notes/importImage.ts` |
 | Pluggable AI | `src/ai/client.ts`, `src/ai/mockClient.ts` |
 | Command-mark detector (proposals only) | `src/marks/detectMarks.ts` |

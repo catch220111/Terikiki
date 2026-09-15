@@ -1,5 +1,5 @@
-import type { AiCard, MatrixCard, NoteCard, PdfPageCard } from '../types/domain.ts';
-import { cardLayer, isLayerVisible } from '../types/domain.ts';
+import type { AiCard, MatrixCard, NoteCard, PdfPageCard, PendingMatchSuggestion } from '../types/domain.ts';
+import { cardLayer, isLayerVisible, isPendingSuggestion } from '../types/domain.ts';
 import { createId, nowIso } from './ids.ts';
 import { primaryHangPageIndex } from './anchors.ts';
 import type { DeskState } from './deskState.ts';
@@ -33,8 +33,10 @@ export function selectedCards(state: DeskState): MatrixCard[] {
     .filter((card): card is MatrixCard => card !== undefined);
 }
 
-export function pendingSuggestionsFor(state: DeskState, noteId: string) {
-  return state.suggestions.filter((s) => s.noteId === noteId && s.status === 'pending');
+export function pendingSuggestionsFor(state: DeskState, noteId: string): PendingMatchSuggestion[] {
+  return state.suggestions.filter(
+    (s): s is PendingMatchSuggestion => s.noteId === noteId && isPendingSuggestion(s),
+  );
 }
 
 export function confirmedMarksFor(state: DeskState, noteId: string) {

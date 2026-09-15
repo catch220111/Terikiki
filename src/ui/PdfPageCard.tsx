@@ -78,7 +78,7 @@ export function PdfPageCard({ page, state, dispatch }: Props) {
     if (pinning.suggestionId) {
       dispatch({ type: 'correct-match', suggestionId: pinning.suggestionId, target });
     } else {
-      dispatch({ type: 'commit-anchor', cardId: pinning.noteId, target, source: 'manual' });
+      dispatch({ type: 'commit-manual-anchor', cardId: pinning.noteId, target });
     }
   }
 

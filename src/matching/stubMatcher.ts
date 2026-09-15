@@ -1,4 +1,4 @@
-import type { MatchSuggestion, NoteCard, PdfPageCard } from '../types/domain.ts';
+import type { NoteCard, PdfPageCard, PendingMatchSuggestion } from '../types/domain.ts';
 import { createId } from '../engine/ids.ts';
 import { assertPendingOnly, type MatchingService } from './service.ts';
 
@@ -25,7 +25,7 @@ function overlapScore(noteText: string, page: PdfPageCard): number {
 /**
  * Heuristic matcher. Returns pending suggestions only — never writes anchors.
  */
-export function suggestMatches(note: NoteCard, pages: readonly PdfPageCard[]): readonly MatchSuggestion[] {
+export function suggestMatches(note: NoteCard, pages: readonly PdfPageCard[]): readonly PendingMatchSuggestion[] {
   if (pages.length === 0) return [];
 
   const blob = `${note.title} ${note.caption} ${note.filename} ${note.inkHints.join(' ')}`;
@@ -56,7 +56,7 @@ export function suggestMatches(note: NoteCard, pages: readonly PdfPageCard[]): r
     ]);
   }
 
-  const suggestions: MatchSuggestion[] = [
+  const suggestions: PendingMatchSuggestion[] = [
     {
       id: createId('match'),
       noteId: note.id,
@@ -89,7 +89,7 @@ export function suggestMatches(note: NoteCard, pages: readonly PdfPageCard[]): r
 
 /** Honest stub: wording overlap + page hints. Not a vision model. */
 export class StubMatchingService implements MatchingService {
-  suggestForNote(note: NoteCard, pages: readonly PdfPageCard[]): readonly MatchSuggestion[] {
+  suggestForNote(note: NoteCard, pages: readonly PdfPageCard[]): readonly PendingMatchSuggestion[] {
     return suggestMatches(note, pages);
   }
 }

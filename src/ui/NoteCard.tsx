@@ -103,7 +103,7 @@ export function NoteCard({ note, state, dispatch }: NoteProps) {
           {pending.map((suggestion) => (
             <aside key={suggestion.id} className="match-slip" data-testid="match-slip">
               <div className="match-kicker">
-                Stub suggestion · {formatConfidence(suggestion.confidence)}
+                Stub suggestion · not pinned · {formatConfidence(suggestion.confidence)}
               </div>
               <p className="match-target">{describeTarget(suggestion.target)}</p>
               <p>{suggestion.rationale}</p>
