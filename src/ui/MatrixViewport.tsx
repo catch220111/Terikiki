@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type Dispatch, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type Dispatch, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import type { DeskAction, DeskState } from '../engine/deskState.ts';
 import { ConnectorLayer } from './ConnectorLayer.tsx';
 import { PageCluster } from './PageCluster.tsx';
@@ -6,17 +6,19 @@ import { PageCluster } from './PageCluster.tsx';
 interface Props {
   state: DeskState;
   dispatch: Dispatch<DeskAction>;
+  onImportNotes: (files: readonly File[]) => void;
 }
 
 function isInteractive(target: EventTarget | null): boolean {
   return target instanceof Element && Boolean(target.closest('button, input, textarea, label, [data-card]'));
 }
 
-export function MatrixViewport({ state, dispatch }: Props) {
+export function MatrixViewport({ state, dispatch, onImportNotes }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [surface, setSurface] = useState<HTMLDivElement | null>(null);
   const [drag, setDrag] = useState<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const [dropOver, setDropOver] = useState(false);
 
   useEffect(() => {
     setSurface(surfaceRef.current);
@@ -78,26 +80,52 @@ export function MatrixViewport({ state, dispatch }: Props) {
 
   const pinning = Boolean(state.anchorDraft);
 
+  function onDragOver(e: DragEvent<HTMLDivElement>) {
+    if (![...e.dataTransfer.types].includes('Files')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setDropOver(true);
+  }
+
+  function onDragLeave(e: DragEvent<HTMLDivElement>) {
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setDropOver(false);
+  }
+
+  function onDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDropOver(false);
+    const files = [...e.dataTransfer.files];
+    if (files.length > 0) onImportNotes(files);
+  }
+
   return (
     <div
       ref={viewportRef}
-      className={`matrix-viewport ${drag ? 'dragging' : ''} ${pinning ? 'pinning' : ''}`}
+      className={`matrix-viewport ${drag ? 'dragging' : ''} ${pinning ? 'pinning' : ''} ${dropOver ? 'drop-over' : ''}`}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
       onClick={(e) => {
         if (!isInteractive(e.target) && !state.anchorDraft) dispatch({ type: 'clear-selection' });
       }}
     >
       {pinning && (
         <div className="banner">
+          {state.anchorDraft?.suggestionId ? 'Correcting a stub guess. ' : ''}
           {state.anchorDraft?.mode === 'page'
-            ? 'Click a PDF page to pin. Esc cancels.'
+            ? 'Click a printed page to pin. Esc cancels.'
             : state.anchorDraft?.pageIndex === undefined
-              ? 'Click a PDF page, then drag a rectangle.'
+              ? 'Click a printed page, then drag a rectangle.'
               : 'Drag a rectangle on the page. Esc cancels.'}
         </div>
+      )}
+      {dropOver && !pinning && (
+        <div className="banner">Drop photographed or scanned notes onto the desk.</div>
       )}
       <div
         ref={surfaceRef}

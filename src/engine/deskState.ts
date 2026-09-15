@@ -18,6 +18,7 @@ import {
   DEFAULT_LAYER_VISIBILITY,
 } from '../types/domain.ts';
 import { createId, nowIso } from './ids.ts';
+import { describeTarget, hasMatchingAnchor } from './anchors.ts';
 
 export interface DeskState {
   document: StudyDocument | null;
@@ -209,7 +210,12 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
     case 'begin-anchor':
       return {
         ...state,
-        anchorDraft: { noteId: action.noteId, mode: action.mode, suggestionId: action.suggestionId },
+        anchorDraft: {
+          noteId: action.noteId,
+          mode: action.mode,
+          suggestionId: action.suggestionId,
+        },
+        focusCardId: action.noteId,
       };
     case 'set-anchor-page': {
       if (!state.anchorDraft) return state;
@@ -238,12 +244,12 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
     case 'cancel-anchor':
       return { ...state, anchorDraft: null };
     case 'commit-anchor': {
+      if (hasMatchingAnchor(state.anchors, action.cardId, action.target)) {
+        return { ...state, anchorDraft: null };
+      }
       const anchor = makeAnchor(action.cardId, action.target, action.source);
       const pageCard = state.pages.find((p) => p.pageIndex === action.target.pageIndex);
-      const evidence =
-        action.target.kind === 'region'
-          ? `region on p${action.target.pageIndex + 1}`
-          : `page ${action.target.pageIndex + 1}`;
+      const evidence = describeTarget(action.target);
       const kind = action.source === 'corrected-match' ? 'correction' : 'pdf_evidence';
       return {
         ...state,
@@ -264,7 +270,13 @@ export function deskReducer(state: DeskState, action: DeskAction): DeskState {
       };
     }
     case 'propose-matches':
-      return { ...state, suggestions: [...state.suggestions, ...action.suggestions] };
+      return {
+        ...state,
+        suggestions: [
+          ...state.suggestions,
+          ...action.suggestions.filter((suggestion) => suggestion.status === 'pending'),
+        ],
+      };
     case 'accept-match': {
       const suggestion = state.suggestions.find((s) => s.id === action.suggestionId);
       if (!suggestion || suggestion.status !== 'pending') return state;

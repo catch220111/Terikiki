@@ -194,6 +194,9 @@ img { max-width: 100%; display: block; }
 }
 .matrix-viewport.dragging { cursor: grabbing; }
 .matrix-viewport.pinning { cursor: crosshair; }
+.matrix-viewport.drop-over {
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
 
 .matrix-surface {
   position: relative;
@@ -259,19 +262,53 @@ img { max-width: 100%; display: block; }
   transform: rotate(var(--rot));
 }
 .paper-card.note {
-  width: 300px;
+  width: 312px;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.4), transparent 28%),
     repeating-linear-gradient(0deg, transparent, transparent 27px, var(--rule) 28px),
     var(--paper);
   box-shadow: var(--shadow);
   border-left: 3px solid var(--hand-ink);
-  padding-left: 0.85rem;
+  padding: 0.95rem 0.8rem 0.85rem 0.95rem;
 }
 .paper-card.note .card-kicker {
   color: var(--hand-ink);
   font-weight: 700;
 }
+.note-tape {
+  position: absolute;
+  top: -7px;
+  left: 1.4rem;
+  width: 52px;
+  height: 15px;
+  background: rgba(234, 217, 168, 0.88);
+  transform: rotate(-7deg);
+  box-shadow: 0 1px 0 rgba(90, 70, 40, 0.18);
+  pointer-events: none;
+}
+.note-face, .pdf-face {
+  all: unset;
+  display: block;
+  cursor: pointer;
+  width: 100%;
+}
+.note-title {
+  display: block;
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  font-weight: 600;
+  margin-top: 0.4rem;
+}
+.note-caption, .note-draft-hint, .note-pins {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.76rem;
+  color: #5c4c3c;
+  margin-top: 0.25rem;
+  line-height: 1.35;
+}
+.note-pins { color: var(--hand-ink); font-style: normal; }
+.note-draft-hint { color: var(--vermillion); }
 .paper-card.pdf {
   width: 204px;
   background: var(--paper-2);
@@ -319,6 +356,7 @@ img { max-width: 100%; display: block; }
   max-height: 220px;
 }
 .paper-card.pdf img { max-height: none; object-fit: contain; }
+.pdf-figure { position: relative; }
 .ghost {
   min-height: 110px;
   display: grid;
@@ -337,23 +375,62 @@ img { max-width: 100%; display: block; }
   color: var(--vermillion);
   font-size: 0.95rem;
 }
-.pin-actions, .match-list { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem; }
-.match-item {
-  background: rgba(255,255,255,0.45);
-  border: 1px solid #d2c4a8;
-  padding: 0.4rem;
-  font-size: 0.72rem;
+.pin-actions { display: flex; flex-wrap: wrap; gap: 0.55rem 0.85rem; margin-top: 0.55rem; }
+.pin-actions button {
+  background: transparent;
+  color: #3a2a12;
+  border: 0;
+  border-bottom: 1px dashed #8a6a40;
+  border-radius: 0;
+  padding: 0.05rem 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.78rem;
 }
-.match-item menu { display: flex; gap: 0.25rem; margin: 0.3rem 0 0; padding: 0; }
-.match-item button, .pin-actions button, .tiny {
+.match-list { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.55rem; }
+.match-slip {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.55), transparent 42%),
+    #efe4c8;
+  border: 0;
+  border-left: 3px solid var(--gold);
+  padding: 0.5rem 0.6rem 0.45rem;
+  transform: rotate(0.5deg);
+  box-shadow: 1px 2px 0 rgba(90, 70, 40, 0.12);
+  font-family: var(--serif);
+  color: #3a2a12;
+}
+.match-kicker {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7a5a28;
+}
+.match-target {
+  margin: 0.2rem 0 0;
+  font-style: italic;
+  font-size: 0.82rem;
+}
+.match-slip p { margin: 0.2rem 0 0; font-size: 0.78rem; line-height: 1.35; }
+.match-slip menu { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.4rem 0 0; padding: 0; }
+.match-slip button, .tiny {
   background: #1c1712;
   color: var(--paper);
   border: 0;
-  border-radius: 999px;
-  padding: 0.15rem 0.5rem;
+  border-radius: 2px;
+  padding: 0.18rem 0.55rem;
   font-size: 0.68rem;
+  font-family: var(--sans);
 }
-.match-item button.reject { background: transparent; color: #5c4c3c; border: 1px solid #cbbfa8; }
+.match-slip button.accept { background: var(--vermillion); }
+.match-slip button.reject {
+  background: transparent;
+  color: #5c4c3c;
+  border-bottom: 1px solid #cbbfa8;
+  border-radius: 0;
+  padding-left: 0.15rem;
+  padding-right: 0.15rem;
+}
 
 .region-hit {
   position: absolute;
@@ -363,8 +440,9 @@ img { max-width: 100%; display: block; }
 }
 .draw-layer {
   position: absolute;
-  inset: 22px 10px 10px;
+  inset: 0;
   cursor: crosshair;
+  touch-action: none;
 }
 .draft-rect {
   position: absolute;
@@ -382,8 +460,9 @@ img { max-width: 100%; display: block; }
 }
 .connectors path {
   fill: none;
-  stroke: color-mix(in srgb, var(--thread) 42%, transparent);
-  stroke-width: 1;
+  stroke: color-mix(in srgb, var(--thread) 48%, transparent);
+  stroke-width: 1.15;
+  stroke-linecap: round;
 }
 
 .ask-panel {

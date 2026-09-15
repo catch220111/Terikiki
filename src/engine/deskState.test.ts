@@ -111,6 +111,57 @@ describe('deskReducer', () => {
     expect(state.trail.some((e) => e.kind === 'correction')).toBe(true);
   });
 
+  it('lets one note pin to multiple targets without duplicating the same pin', () => {
+    let state = hydrated();
+    const n = note();
+    state = deskReducer(state, { type: 'import-note', note: n });
+    state = deskReducer(state, {
+      type: 'commit-anchor',
+      cardId: n.id,
+      target: { kind: 'page', documentId: 'doc', pageIndex: 1 },
+      source: 'manual',
+    });
+    state = deskReducer(state, {
+      type: 'commit-anchor',
+      cardId: n.id,
+      target: { kind: 'region', documentId: 'doc', pageIndex: 0, rect: { x: 0.1, y: 0.2, w: 0.4, h: 0.3 } },
+      source: 'manual',
+    });
+    expect(state.anchors).toHaveLength(2);
+    state = deskReducer(state, {
+      type: 'commit-anchor',
+      cardId: n.id,
+      target: { kind: 'page', documentId: 'doc', pageIndex: 1 },
+      source: 'manual',
+    });
+    expect(state.anchors).toHaveLength(2);
+  });
+
+  it('corrects a pending suggestion by clicking a page', () => {
+    let state = hydrated();
+    const n = note();
+    state = deskReducer(state, { type: 'import-note', note: n });
+    state = deskReducer(state, { type: 'propose-matches', suggestions: [suggestion(n.id)] });
+    state = deskReducer(state, { type: 'begin-anchor', noteId: n.id, mode: 'page', suggestionId: 'match_1' });
+    state = deskReducer(state, { type: 'set-anchor-page', pageIndex: 0 });
+    expect(state.suggestions[0]?.status).toBe('corrected');
+    expect(state.anchors[0]?.source).toBe('corrected-match');
+    expect(state.anchors[0]?.target).toMatchObject({ kind: 'page', pageIndex: 0 });
+    expect(state.anchorDraft).toBeNull();
+  });
+
+  it('ignores matcher output that is not pending', () => {
+    let state = hydrated();
+    const n = note();
+    state = deskReducer(state, { type: 'import-note', note: n });
+    state = deskReducer(state, {
+      type: 'propose-matches',
+      suggestions: [suggestion(n.id, { status: 'accepted' })],
+    });
+    expect(state.suggestions).toHaveLength(0);
+    expect(state.anchors).toHaveLength(0);
+  });
+
   it('manual page anchor commits only after an explicit pin', () => {
     let state = hydrated();
     const n = note();

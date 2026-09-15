@@ -1,5 +1,6 @@
 import type { MatchSuggestion, NoteCard, PdfPageCard } from '../types/domain.ts';
 import { createId } from '../engine/ids.ts';
+import { assertPendingOnly, type MatchingService } from './service.ts';
 
 const PAGE_HINT = /(?:page|p)[\s:_-]*(\d+)/i;
 
@@ -22,9 +23,9 @@ function overlapScore(noteText: string, page: PdfPageCard): number {
 }
 
 /**
- * Heuristic matcher. Callers must accept / reject / correct — never auto-commit.
+ * Heuristic matcher. Returns pending suggestions only — never writes anchors.
  */
-export function suggestMatches(note: NoteCard, pages: readonly PdfPageCard[]): MatchSuggestion[] {
+export function suggestMatches(note: NoteCard, pages: readonly PdfPageCard[]): readonly MatchSuggestion[] {
   if (pages.length === 0) return [];
 
   const blob = `${note.title} ${note.caption} ${note.filename} ${note.inkHints.join(' ')}`;
@@ -43,7 +44,7 @@ export function suggestMatches(note: NoteCard, pages: readonly PdfPageCard[]): M
   if (!top || top.score < 0.08) {
     const fallback = pages[0];
     if (!fallback) return [];
-    return [
+    return assertPendingOnly([
       {
         id: createId('match'),
         noteId: note.id,
@@ -52,7 +53,7 @@ export function suggestMatches(note: NoteCard, pages: readonly PdfPageCard[]): M
         rationale: 'Weak stub guess — first page. Confirm, reject, or correct.',
         status: 'pending',
       },
-    ];
+    ]);
   }
 
   const suggestions: MatchSuggestion[] = [
@@ -83,5 +84,12 @@ export function suggestMatches(note: NoteCard, pages: readonly PdfPageCard[]): M
     });
   }
 
-  return suggestions;
+  return assertPendingOnly(suggestions);
+}
+
+/** Honest stub: wording overlap + page hints. Not a vision model. */
+export class StubMatchingService implements MatchingService {
+  suggestForNote(note: NoteCard, pages: readonly PdfPageCard[]): readonly MatchSuggestion[] {
+    return suggestMatches(note, pages);
+  }
 }
